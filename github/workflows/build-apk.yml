@@ -1,0 +1,49 @@
+name: Build Bhajjamal APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download repository
+        uses: actions/checkout@v4
+
+      - name: Extract Android project
+        run: |
+          ZIP=$(find . -maxdepth 1 -type f -name "*.zip" | head -1)
+          echo "Using: $ZIP"
+          mkdir build_project
+          unzip -q "$ZIP" -d build_project
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK
+        run: |
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Build APK
+        working-directory: build_project
+        run: gradle assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Bhajjamal-Voice-Inventory-APK
+          path: build_project/app/build/outputs/apk/debug/app-debug.apk

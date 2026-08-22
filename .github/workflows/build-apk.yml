@@ -22,13 +22,19 @@ jobs:
 
       - name: Extract Android Project
         run: |
-                    unzip -q "BhajjamalVoiceInventory_Phone_APK_Build.zip" -d project
+          unzip -q "BhajjamalVoiceInventory_Phone_APK_Build.zip" -d project
 
       - name: Find Project Folder
         run: |
           PROJECT_DIR=$(dirname "$(find project -name settings.gradle -type f | head -n 1)")
-          echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
           echo "Found project at: $PROJECT_DIR"
+
+      - name: Fix Java JVM Target
+        run: |
+          sed -i 's/JavaVersion.VERSION_1_8/JavaVersion.VERSION_17/g' "$PROJECT_DIR/app/build.gradle"
+          sed -i 's/sourceCompatibility = 1.8/sourceCompatibility = 17/g' "$PROJECT_DIR/app/build.gradle"
+          sed -i 's/targetCompatibility = 1.8/targetCompatibility = 17/g' "$PROJECT_DIR/app/build.gradle"
 
       - name: Build APK
         run: |

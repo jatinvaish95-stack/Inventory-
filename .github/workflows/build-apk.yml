@@ -14,30 +14,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
       - name: Extract Android Project
         run: |
-          unzip -q "BhajjamalVoiceInventory_Phone_APK_Build.zip" -d project
-          echo "Project extracted"
-          find project -name gradlew -type f
+          unzip -q "BhajjamalVoiceInventory_1.0_Android_Project.zip" -d project
 
       - name: Find Project Folder
         run: |
-          GRADLEW=$(find project -name gradlew -type f | head -n 1)
-          if [ -z "$GRADLEW" ]; then
-            echo "ERROR: gradlew not found inside ZIP"
-            exit 1
-          fi
-          PROJECT_DIR=$(dirname "$GRADLEW")
+          PROJECT_DIR=$(dirname "$(find project -name settings.gradle -type f | head -n 1)")
           echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
           echo "Found project at: $PROJECT_DIR"
-
-      - name: Make gradlew executable
-        run: chmod +x "$PROJECT_DIR/gradlew"
 
       - name: Build APK
         run: |
           cd "$PROJECT_DIR"
-          ./gradlew assembleDebug
+          gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4

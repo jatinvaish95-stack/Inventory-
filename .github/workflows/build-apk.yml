@@ -30,11 +30,23 @@ jobs:
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
           echo "Found project at: $PROJECT_DIR"
 
-      - name: Fix Java JVM Target
+      - name: Force Java 17
         run: |
-          sed -i 's/JavaVersion.VERSION_1_8/JavaVersion.VERSION_17/g' "$PROJECT_DIR/app/build.gradle"
-          sed -i 's/sourceCompatibility = 1.8/sourceCompatibility = 17/g' "$PROJECT_DIR/app/build.gradle"
-          sed -i 's/targetCompatibility = 1.8/targetCompatibility = 17/g' "$PROJECT_DIR/app/build.gradle"
+          cat >> "$PROJECT_DIR/app/build.gradle" <<'EOF'
+
+          android {
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+
+              kotlinOptions {
+                  jvmTarget = "17"
+              }
+          }
+          EOF
+
+          echo "Java and Kotlin JVM target forced to 17"
 
       - name: Build APK
         run: |

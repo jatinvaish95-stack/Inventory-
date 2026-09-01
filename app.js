@@ -1,10 +1,46 @@
 const KEY = "city_group_inventory_v1";
 
-let inventory = JSON.parse(
-  localStorage.getItem(KEY) || "[]"
-);
+let inventory = [];
+
+try {
+  inventory = JSON.parse(localStorage.getItem(KEY) || "[]");
+  if (!Array.isArray(inventory)) inventory = [];
+} catch (e) {
+  inventory = [];
+}
 
 const $ = id => document.getElementById(id);
+
+
+/* =========================
+   TEXT NORMALIZE
+========================= */
+
+function norm(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}.\s-]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+
+/* =========================
+   ESCAPE HTML
+========================= */
+
+function esc(value) {
+  return String(value ?? "").replace(
+    /[&<>"']/g,
+    ch => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;"
+    }[ch])
+  );
+}
 
 
 /* =========================
@@ -18,93 +54,74 @@ function save() {
 
 
 /* =========================
-   NORMALIZE
-========================= */
-
-function norm(s) {
-  return String(s || "")
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}.\s-]/gu, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-
-/* =========================
-   ESCAPE HTML
-========================= */
-
-function esc(s) {
-  return String(s ?? "").replace(
-    /[&<>"']/g,
-    m => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#039;"
-    }[m])
-  );
-}
-
-
-/* =========================
    RENDER
 ========================= */
 
 function render() {
 
-  const search = $("search");
+  const body = $("inventoryBody");
 
+  if (!body) return;
+
+  const search = $("search");
   const q = search ? norm(search.value) : "";
 
-  const rows = inventory.filter(x =>
-    [
-      x.product,
-      x.density,
-      x.thickness,
-      x.unit
-    ].some(v => norm(v).includes(q))
-  );
+  const rows = inventory.filter(item => {
+
+    return [
+      item.product,
+      item.density,
+      item.thickness,
+      item.unit
+    ].some(value =>
+      norm(value).includes(q)
+    );
+  });
 
 
-  $("inventoryBody").innerHTML =
-    rows.map(x => `
-      <tr>
-        <td>${esc(x.product)}</td>
-        <td>${esc(x.density)}</td>
-        <td>${esc(x.thickness)}</td>
-        <td>${esc(x.unit)}</td>
-        <td>${Number(x.stock || 0)}</td>
-        <td>₹${Number(x.rate || 0).toLocaleString("en-IN")}</td>
-      </tr>
-    `).join("");
+  body.innerHTML = rows.map(item => `
+    <tr>
+      <td>${esc(item.product)}</td>
+      <td>${esc(item.density)}</td>
+      <td>${esc(item.thickness)}</td>
+      <td>${esc(item.unit || "pcs")}</td>
+      <td>${Number(item.stock || 0)}</td>
+      <td>₹${Number(item.rate || 0).toLocaleString("en-IN")}</td>
+    </tr>
+  `).join("");
 
 
-  $("empty").style.display =
-    rows.length ? "none" : "block";
+  if ($("empty")) {
+    $("empty").style.display =
+      rows.length ? "none" : "block";
+  }
 
 
-  const units = inventory.reduce(
-    (total, x) =>
-      total + Number(x.stock || 0),
+  const totalUnits = inventory.reduce(
+    (total, item) =>
+      total + Number(item.stock || 0),
     0
   );
 
 
-  const value = inventory.reduce(
-    (total, x) =>
+  const totalValue = inventory.reduce(
+    (total, item) =>
       total +
-      Number(x.stock || 0) *
-      Number(x.rate || 0),
+      Number(item.stock || 0) *
+      Number(item.rate || 0),
     0
   );
 
 
-  $("totalUnits").textContent = units;
+  if ($("totalUnits")) {
+    $("totalUnits").textContent = totalUnits;
+  }
 
-  $("inventoryValue").textContent =
-    "₹" + value.toLocaleString("en-IN");
+
+  if ($("inventoryValue")) {
+    $("inventoryValue").textContent =
+      "₹" + totalValue.toLocaleString("en-IN");
+  }
 }
 
 
@@ -123,56 +140,12 @@ function openProduct() {
 
 
 /* =========================
-   QUICK BUTTONS
-========================= */
-
-$("inventoryBtn").onclick = openProduct;
-
-
-$("stockInBtn").onclick = () => {
-
-  $("command").value = "stock in ";
-
-  $("command").focus();
-
-};
-
-
-$("stockOutBtn").onclick = () => {
-
-  $("command").value = "stock out ";
-
-  $("command").focus();
-
-};
-
-
-$("rateBtn").onclick = () => {
-
-  $("search").focus();
-
-};
-
-
-/* =========================
-   CANCEL
-========================= */
-
-$("cancelProduct").onclick = () => {
-
-  $("productDialog").close();
-
-};
-
-
-/* =========================
    ADD PRODUCT
 ========================= */
 
-$("productForm").onsubmit = e => {
+function addProduct(event) {
 
-  e.preventDefault();
-
+  event.preventDefault();
 
   const product =
     $("product").value.trim();
@@ -217,11 +190,9 @@ $("productForm").onsubmit = e => {
 
   $("productForm").reset();
 
-  $("unit").value = "pcs";
-
-  $("stock").value = "0";
-
-  $("rate").value = "0";
+  if ($("unit")) $("unit").value = "pcs";
+  if ($("stock")) $("stock").value = "0";
+  if ($("rate")) $("rate").value = "0";
 
 
   $("productDialog").close();
@@ -229,102 +200,6 @@ $("productForm").onsubmit = e => {
 
   $("status").textContent =
     "Product saved successfully.";
-};
-
-
-/* =========================
-   PRODUCT NAME ALIASES
-========================= */
-
-function productWords(product) {
-
-  const p = norm(product);
-
-  if (
-    p === "gadda" ||
-    p === "gadde" ||
-    p === "gadday"
-  ) {
-    return [
-      "gadda",
-      "gadde",
-      "gadday"
-    ];
-  }
-
-  return [p];
-}
-
-
-/* =========================
-   FIND PRODUCT
-========================= */
-
-function findProduct(text, isOut) {
-
-  const n = norm(text);
-
-
-  /* --------------------------------
-     FIRST: DENSITY + THICKNESS
-  -------------------------------- */
-
-  const matches = inventory.filter(x => {
-
-    const d = norm(x.density);
-
-    const t = norm(x.thickness);
-
-    if (!d || !t) {
-      return false;
-    }
-
-    return (
-      n.includes(d) &&
-      n.includes(t)
-    );
-  });
-
-
-  if (matches.length > 0) {
-
-    /* For Stock Out choose
-       product having stock */
-
-    if (isOut) {
-
-      const available =
-        matches.find(
-          x => Number(x.stock || 0) > 0
-        );
-
-      if (available) {
-        return available;
-      }
-    }
-
-    return matches[0];
-  }
-
-
-  /* --------------------------------
-     SECOND: PRODUCT NAME
-  -------------------------------- */
-
-  const found =
-    inventory.find(x => {
-
-      const words =
-        productWords(x.product);
-
-      return words.some(word =>
-        n.includes(norm(word))
-      );
-
-    });
-
-
-  return found || null;
 }
 
 
@@ -332,64 +207,22 @@ function findProduct(text, isOut) {
    DETECT STOCK OUT
 ========================= */
 
-function isStockOutCommand(text) {
+function isStockOut(text) {
 
   const n = norm(text);
 
+  const english =
+    /\b(bik|bike|bicke|biki|bikgaye|bikgaya|sell|sold|sale|out|remove|nikal|nikala|nikle|gaye|gaya)\b/i;
 
-  const englishWords = [
-    "bik",
-    "bike",
-    "bicke",
-    "biki",
-    "bikgaye",
-    "bikgaya",
-    "sell",
-    "sold",
-    "sale",
-    "out",
-    "remove",
-    "nikal",
-    "nikala",
-    "nikle",
-    "gaye",
-    "gaya"
-  ];
+  const hindi =
+    /बिक|बेच|बिके|बिकगये|बिकगया|गये|गया|निकाल|निकला|बेचा/;
 
-
-  for (const word of englishWords) {
-
-    if (
-      new RegExp("\\b" + word + "\\b", "i")
-        .test(n)
-    ) {
-      return true;
-    }
-  }
-
-
-  const hindiWords = [
-    "बिक",
-    "बेच",
-    "बिके",
-    "बिकगये",
-    "बिकगया",
-    "गये",
-    "गया",
-    "निकाल",
-    "निकला",
-    "बेचा"
-  ];
-
-
-  return hindiWords.some(word =>
-    n.includes(word)
-  );
+  return english.test(n) || hindi.test(n);
 }
 
 
 /* =========================
-   QUANTITY
+   FIND QUANTITY
 ========================= */
 
 function getQuantity(text) {
@@ -397,27 +230,35 @@ function getQuantity(text) {
   const n = norm(text);
 
 
-  /* Example:
+  /*
+     First look for:
      2 gadde
+     2 gadda
      2 pcs
      2 piece
+     2 units
+     2 नग
   */
 
-  const match =
-    n.match(
-      /(\d+(?:\.\d+)?)\s*(gadde|gadda|gadday|pcs|piece|pieces|unit|units|नग|गद्दे|गद्दा)/i
-    );
+  const withUnit = n.match(
+    /(\d+(?:\.\d+)?)\s*(gadde|gadda|gadday|pcs|piece|pieces|unit|units|नग|गद्दे|गद्दा)/i
+  );
 
 
-  if (match) {
-    return Number(match[1]);
+  if (withUnit) {
+    return Number(withUnit[1]);
   }
 
 
-  /* Any number */
+  /*
+     Otherwise use a standalone number.
+     Example:
+     stock out 2
+  */
 
-  const number =
-    n.match(/\b(\d+(?:\.\d+)?)\b/);
+  const number = n.match(
+    /\b(\d+(?:\.\d+)?)\b/
+  );
 
 
   if (number) {
@@ -430,18 +271,181 @@ function getQuantity(text) {
 
 
 /* =========================
+   PRODUCT WORD MATCH
+========================= */
+
+function productWordMatch(text, product) {
+
+  const n = norm(text);
+  const p = norm(product);
+
+
+  if (!p) return false;
+
+
+  if (n.includes(p)) {
+    return true;
+  }
+
+
+  if (
+    (p === "gadda" || p === "gadde") &&
+    (
+      n.includes("gadda") ||
+      n.includes("gadde") ||
+      n.includes("gadday") ||
+      n.includes("गद्दा") ||
+      n.includes("गद्दे")
+    )
+  ) {
+    return true;
+  }
+
+
+  return false;
+}
+
+
+/* =========================
+   FIND PRODUCT
+========================= */
+
+function findProduct(text, stockOut) {
+
+  const n = norm(text);
+
+
+  /*
+     Get density + thickness matches
+  */
+
+  const matches = inventory.filter(item => {
+
+    const density =
+      norm(item.density);
+
+    const thickness =
+      norm(item.thickness);
+
+
+    return (
+      density &&
+      thickness &&
+      n.includes(density) &&
+      n.includes(thickness)
+    );
+  });
+
+
+  if (matches.length) {
+
+    /*
+       If product name is also spoken,
+       prefer that product.
+    */
+
+    const named = matches.filter(item =>
+      productWordMatch(text, item.product)
+    );
+
+
+    const candidates =
+      named.length ? named : matches;
+
+
+    /*
+       Stock OUT:
+       choose the matching item
+       which actually has stock.
+    */
+
+    if (stockOut) {
+
+      const available =
+        candidates
+          .filter(item =>
+            Number(item.stock || 0) > 0
+          )
+          .sort(
+            (a, b) =>
+              Number(b.stock || 0) -
+              Number(a.stock || 0)
+          );
+
+
+      if (available.length) {
+        return available[0];
+      }
+
+
+      /*
+         Return first matching item
+         so user gets "Available: 0"
+         instead of Product not found.
+      */
+
+      return candidates[0];
+    }
+
+
+    return candidates[0];
+  }
+
+
+  /*
+     Product-name-only matching
+  */
+
+  const byName =
+    inventory.filter(item =>
+      productWordMatch(text, item.product)
+    );
+
+
+  if (stockOut) {
+
+    const available =
+      byName
+        .filter(item =>
+          Number(item.stock || 0) > 0
+        )
+        .sort(
+          (a, b) =>
+            Number(b.stock || 0) -
+            Number(a.stock || 0)
+        );
+
+
+    if (available.length) {
+      return available[0];
+    }
+  }
+
+
+  return byName[0] || null;
+}
+
+
+/* =========================
    PROCESS COMMAND
 ========================= */
 
 function processCommand() {
 
-  const commandBox = $("command");
+  const command =
+    $("command");
 
-  const status = $("status");
+  const status =
+    $("status");
+
+
+  if (!command || !status) {
+    return;
+  }
 
 
   const raw =
-    commandBox.value.trim();
+    command.value.trim();
 
 
   if (!raw) {
@@ -451,10 +455,6 @@ function processCommand() {
 
     return;
   }
-
-
-  const isOut =
-    isStockOutCommand(raw);
 
 
   const qty =
@@ -470,8 +470,12 @@ function processCommand() {
   }
 
 
+  const stockOut =
+    isStockOut(raw);
+
+
   const product =
-    findProduct(raw, isOut);
+    findProduct(raw, stockOut);
 
 
   if (!product) {
@@ -483,69 +487,53 @@ function processCommand() {
   }
 
 
-  /* =========================
+  const currentStock =
+    Number(product.stock || 0);
+
+
+  /* =====================
      STOCK OUT
-  ========================= */
+  ===================== */
 
-  if (isOut) {
+  if (stockOut) {
 
-    const available =
-      Number(product.stock || 0);
-
-
-    if (available < qty) {
+    if (currentStock < qty) {
 
       status.textContent =
-        `Not enough stock. Available: ${available}`;
+        `Not enough stock. Available: ${currentStock}`;
 
       return;
     }
 
 
     product.stock =
-      available - qty;
+      currentStock - qty;
 
 
     save();
 
 
     status.textContent =
-      `Stock Out: ${qty} ${product.unit} from ${product.product}.`;
+      `Stock Out: ${qty} ${product.unit || "pcs"} from ${product.product}.`;
 
     return;
   }
 
 
-  /* =========================
+  /* =====================
      STOCK IN
-  ========================= */
+  ===================== */
 
   product.stock =
-    Number(product.stock || 0) + qty;
+    currentStock + qty;
 
 
   save();
 
 
   status.textContent =
-    `Stock In: ${qty} ${product.unit} to ${product.product}.`;
+    `Stock In: ${qty} ${product.unit || "pcs"} to ${product.product}.`;
 }
-
-
-/* =========================
-   PROCESS BUTTON
-========================= */
-
-$("processBtn").onclick =
-  processCommand;
-
-
-/* =========================
-   SEARCH
-========================= */
-
-$("search").oninput =
-  render;
 
 
 /* =========================
@@ -555,7 +543,7 @@ $("search").oninput =
 let recognition = null;
 
 
-$("speakBtn").onclick = () => {
+function startVoice() {
 
   const SR =
     window.SpeechRecognition ||
@@ -565,7 +553,7 @@ $("speakBtn").onclick = () => {
   if (!SR) {
 
     $("status").textContent =
-      "Voice recognition is not supported. Type the command instead.";
+      "Voice recognition is not supported. Please type the command.";
 
     return;
   }
@@ -575,48 +563,36 @@ $("speakBtn").onclick = () => {
 
     recognition = new SR();
 
-
-    recognition.lang =
-      "hi-IN";
-
-
-    recognition.interimResults =
-      false;
-
-
-    recognition.maxAlternatives =
-      1;
+    recognition.lang = "hi-IN";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
 
 
     recognition.onstart = () => {
 
       $("status").textContent =
         "Listening… बोलिए।";
-
     };
 
 
-    recognition.onresult = e => {
+    recognition.onresult = event => {
 
       const text =
-        e.results[0][0].transcript;
+        event.results[0][0].transcript;
 
 
-      $("command").value =
-        text;
+      $("command").value = text;
 
 
       $("status").textContent =
         "Voice captured. Tap Process.";
-
     };
 
 
-    recognition.onerror = e => {
+    recognition.onerror = event => {
 
       $("status").textContent =
-        "Voice error: " + e.error;
-
+        "Voice error: " + event.error;
     };
 
 
@@ -625,17 +601,118 @@ $("speakBtn").onclick = () => {
 
     recognition.start();
 
-  } catch (e) {
+  } catch (error) {
 
     $("status").textContent =
-      "Voice could not start. Please allow microphone permission and use the HTTPS app URL.";
-
+      "Voice could not start. Please allow microphone permission and use HTTPS.";
   }
-};
+}
 
 
 /* =========================
-   START
+   CONNECT BUTTONS
 ========================= */
 
-render();
+function setup() {
+
+  if ($("inventoryBtn")) {
+    $("inventoryBtn").onclick =
+      openProduct;
+  }
+
+
+  if ($("stockInBtn")) {
+
+    $("stockInBtn").onclick = () => {
+
+      $("command").value =
+        "stock in ";
+
+      $("command").focus();
+
+      $("status").textContent =
+        "Type quantity and product, then tap Process.";
+    };
+  }
+
+
+  if ($("stockOutBtn")) {
+
+    $("stockOutBtn").onclick = () => {
+
+      $("command").value =
+        "stock out ";
+
+      $("command").focus();
+
+      $("status").textContent =
+        "Type quantity and product, then tap Process.";
+    };
+  }
+
+
+  if ($("rateBtn")) {
+
+    $("rateBtn").onclick = () => {
+
+      $("search").focus();
+    };
+  }
+
+
+  if ($("cancelProduct")) {
+
+    $("cancelProduct").onclick = () => {
+
+      $("productDialog").close();
+    };
+  }
+
+
+  if ($("productForm")) {
+
+    $("productForm").onsubmit =
+      addProduct;
+  }
+
+
+  if ($("processBtn")) {
+
+    $("processBtn").onclick =
+      processCommand;
+  }
+
+
+  if ($("search")) {
+
+    $("search").oninput =
+      render;
+  }
+
+
+  if ($("speakBtn")) {
+
+    $("speakBtn").onclick =
+      startVoice;
+  }
+
+
+  render();
+}
+
+
+/* =========================
+   START APP
+========================= */
+
+if (document.readyState === "loading") {
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    setup
+  );
+
+} else {
+
+  setup();
+}

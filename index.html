@@ -1,79 +1,1173 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#fff4c7"><link rel="manifest" href="manifest.json">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#fff4c7">
+<link rel="manifest" href="manifest.json">
 <title>City Group Stock Manager</title>
+
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f5f6fb;color:#18213a;font-family:Arial,sans-serif}
-.app{max-width:760px;margin:auto;padding:16px 14px 35px}header{text-align:center;padding:10px 0 18px}
-h1{margin:0;font-size:28px}.sub{font-size:19px;margin-top:3px}header p{color:#777}
-.card{background:#fff;border-radius:18px;padding:17px;margin:12px 0;box-shadow:0 3px 15px #0001}
-h2{font-size:20px;margin:0 0 14px}.voicebox{border:1px solid #ddd;border-radius:14px;padding:13px}
-textarea,input{width:100%;padding:13px;border:1px solid #d9dce5;border-radius:12px;font-size:16px}
-textarea{height:82px;resize:vertical}.buttons,.stats,.actions,.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
-button{border:0;border-radius:12px;padding:13px;font-size:16px;font-weight:600}.speak{background:#f9c83d}.process{background:#18213a;color:white}
-.status{margin-top:10px;background:#f1f2f5;border-radius:10px;padding:10px;min-height:40px;color:#555}
-.stat{padding:17px;text-align:center;border-radius:15px;background:#eeeaff}.stat:nth-child(2){background:#fff1bd}
-.stat b{display:block;font-size:26px;margin-top:5px}.action{background:#f7f8fb;border:1px solid #e4e6ec;text-align:left}
-.action small{display:block;color:#777;margin-top:4px;font-weight:400}.add{background:#16a34a;color:#fff;width:100%;margin-top:10px}
-.cancel{background:#eee;width:100%;margin-top:7px}.hidden{display:none}.search{margin-bottom:10px}
-.wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:10px 7px;border-bottom:1px solid #eee;white-space:nowrap}th{background:#f4f4f5}
-.row button{padding:7px 8px;font-size:12px;margin-right:3px}.empty{text-align:center;color:#777;padding:20px}
-@media(max-width:480px){.app{padding:10px}h1{font-size:25px}}
-</style></head>
-<body><div class="app">
-<header><div style="font-size:30px">🏢</div><h1>CITY GROUP</h1><div class="sub">Stock Manager</div><p>Speak Your Stock Command</p></header>
+*{box-sizing:border-box}
+body{margin:0;background:#f5f6fb;color:#18213a;font-family:Arial,sans-serif}
+.app{max-width:760px;margin:auto;padding:16px 14px 35px}
+header{text-align:center;padding:10px 0 18px}
+h1{margin:0;font-size:28px}.sub{font-size:19px;margin-top:3px}
+header p{color:#777}
+.card{background:#fff;border-radius:18px;padding:17px;margin:12px 0;
+box-shadow:0 3px 15px #0001}
+h2{font-size:20px;margin:0 0 14px}
+.voicebox{border:1px solid #ddd;border-radius:14px;padding:13px}
+textarea,input{width:100%;padding:13px;border:1px solid #d9dce5;
+border-radius:12px;font-size:16px}
+textarea{height:82px;resize:vertical}
+.buttons,.stats,.actions,.formgrid{display:grid;grid-template-columns:1fr 1fr;
+gap:10px;margin-top:10px}
+button{border:0;border-radius:12px;padding:13px;font-size:16px;font-weight:600}
+.speak{background:#f9c83d}
+.process{background:#18213a;color:white}
+.status{margin-top:10px;background:#f1f2f5;border-radius:10px;
+padding:10px;min-height:40px;color:#555}
+.stat{padding:17px;text-align:center;border-radius:15px;background:#eeeaff}
+.stat:nth-child(2){background:#fff1bd}
+.stat b{display:block;font-size:26px;margin-top:5px}
+.action{background:#f7f8fb;border:1px solid #e4e6ec;text-align:left}
+.action small{display:block;color:#777;margin-top:4px;font-weight:400}
+.add{background:#16a34a;color:#fff;width:100%;margin-top:10px}
+.cancel{background:#eee;width:100%;margin-top:7px}
+.hidden{display:none}
+.search{margin-bottom:10px}
+.wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:10px 7px;border-bottom:1px solid #eee;
+white-space:nowrap}
+th{background:#f4f4f5}
+.row button{padding:7px 8px;font-size:12px;margin-right:3px}
+.empty{text-align:center;color:#777;padding:20px}
+@media(max-width:480px){
+.app{padding:10px}h1{font-size:25px}
+}
+</style>
+</head>
 
-<section class="card"><h2>🎙️ Voice Command</h2><div class="voicebox">
-<div style="color:#777;font-size:13px;margin-bottom:8px">Example: “40 density ke 4 inch ke 2 gadde bik gaye”</div>
-<textarea id="cmd" placeholder="Speak or type your command..."></textarea>
-<div class="buttons"><button class="speak" id="speak">🎙️ Speak</button><button class="process" id="process">⚡ Process</button></div>
-<div class="status" id="status">Ready.</div></div></section>
+<body>
+<div class="app">
 
-<section class="card"><h2>📊 Overview</h2><div class="stats">
-<div class="stat">Total Stock Units<b id="total">0</b></div><div class="stat">Inventory Value<b id="value">₹0</b></div>
-</div></section>
+<header>
+<div style="font-size:30px">🏢</div>
+<h1>CITY GROUP</h1>
+<div class="sub">Stock Manager</div>
+<p>Speak Your Stock Command</p>
+</header>
 
-<section class="card"><h2>⚡ Quick Actions</h2><div class="actions">
-<button class="action" onclick="openForm('in')">➕ Stock In<small>Add stock</small></button>
-<button class="action" onclick="openForm('out')">➖ Stock Out<small>Sell / remove</small></button>
-<button class="action" onclick="document.getElementById('form').classList.remove('hidden');document.getElementById('form').scrollIntoView({behavior:'smooth'})">📦 Inventory<small>Add product</small></button>
-<button class="action" onclick="document.getElementById('search').focus()">💰 Rate List<small>Search rates</small></button>
-</div></section>
+<section class="card">
+<h2>🎙️ Voice Command</h2>
+<div class="voicebox">
 
-<section class="card hidden" id="form"><h2 id="formTitle">➕ Add Product</h2>
-<div class="formgrid"><input id="product" placeholder="Product (e.g. Gadda)"><input id="density" placeholder="Density (e.g. 40)">
-<input id="thickness" placeholder="Thickness (e.g. 4 inch)"><input id="unit" placeholder="Unit (e.g. pcs)" value="pcs">
-<input id="stock" type="number" min="0" placeholder="Stock"><input id="rate" type="number" min="0" placeholder="Rate"></div>
-<button class="add" onclick="saveProduct()">💾 Save</button><button class="cancel" onclick="closeForm()">Cancel</button></section>
+<div style="color:#777;font-size:13px;margin-bottom:8px">
+Example: “40 density ke 4 inch ke 2 gadde bik gaye”
+</div>
 
-<section class="card"><h2>📦 Current Inventory</h2><input class="search" id="search" placeholder="🔎 Search product, density, thickness..." oninput="render()">
-<div class="wrap"><table><thead><tr><th>Product</th><th>Density</th><th>Thickness</th><th>Unit</th><th>Stock</th><th>Rate</th><th></th></tr></thead>
-<tbody id="body"></tbody></table></div></section>
+<textarea id="cmd"
+placeholder="Speak or type your command..."></textarea>
+
+<div class="buttons">
+<button class="speak" id="speak">🎙️ Speak</button>
+<button class="process" id="process">⚡ Process</button>
+</div>
+
+<div class="status" id="status">Ready.</div>
+</div>
+</section>
+
+<section class="card">
+<h2>📊 Overview</h2>
+
+<div class="stats">
+<div class="stat">
+Total Stock Units
+<b id="total">0</b>
+</div>
+
+<div class="stat">
+Inventory Value
+<b id="value">₹0</b>
+</div>
+</div>
+</section>
+
+<section class="card">
+<h2>⚡ Quick Actions</h2>
+
+<div class="actions">
+
+<button class="action" onclick="openForm('in')">
+➕ Stock In
+<small>Add stock</small>
+</button>
+
+<button class="action" onclick="openForm('out')">
+➖ Stock Out
+<small>Sell / remove</small>
+</button>
+
+<button class="action"
+onclick="openForm('add')">
+📦 Inventory
+<small>Add product</small>
+</button>
+
+<button class="action"
+onclick="document.getElementById('search').focus()">
+💰 Rate List
+<small>Search rates</small>
+</button>
+
+</div>
+</section>
+
+<section class="card hidden" id="form">
+
+<h2 id="formTitle">➕ Add Product</h2>
+
+<div class="formgrid">
+
+<input id="product" placeholder="Product (e.g. Gadda)">
+<input id="density" placeholder="Density (e.g. 40)">
+<input id="thickness" placeholder="Thickness (e.g. 4 inch)">
+<input id="unit" placeholder="Unit (e.g. pcs)" value="pcs">
+
+<input id="stock" type="number" min="0" placeholder="Stock">
+<input id="rate" type="number" min="0" placeholder="Rate">
+
+</div>
+
+<button class="add" onclick="saveProduct()">💾 Save</button>
+<button class="cancel" onclick="closeForm()">Cancel</button>
+
+</section>
+
+<section class="card">
+
+<h2>📦 Current Inventory</h2>
+
+<input class="search"
+id="search"
+placeholder="🔎 Search product, density, thickness..."
+oninput="render()">
+
+<div class="wrap">
+
+<table>
+
+<thead>
+<tr>
+<th>Product</th>
+<th>Density</th>
+<th>Thickness</th>
+<th>Unit</th>
+<th>Stock</th>
+<th>Rate</th>
+<th></th>
+</tr>
+</thead>
+
+<tbody id="body"></tbody>
+
+</table>
+
+</div>
+</section>
+
 </div>
 
 <script>
-const KEY="city_group_stock_manager_v1";
-let data=[];
-try{const raw=localStorage.getItem(KEY);data=raw?JSON.parse(raw):[];if(!Array.isArray(data))data=[]}catch(e){data=[]}
-let mode="add";
-const $=id=>document.getElementById(id);
-function norm(s){return String(s??"").toLowerCase().trim().replace(/इंच/g," inch ").replace(/डेंसिटी/g," density ").replace(/गद्दों/g," gadde ").replace(/गद्दे/g," gadde ").replace(/गद्दा/g," gadda ").replace(/बिक गए/g," bik gaye ").replace(/बिक गये/g," bik gaye ").replace(/बिके/g," bike ").replace(/बेच दिए/g," bech diye ").replace(/बेच दिये/g," bech diye ").replace(/\s+/g," ")}
-function money(n){return "₹"+Number(n||0).toLocaleString("en-IN",{maximumFractionDigits:2})}
-function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(data));render();return true}catch(e){alert("Data save nahi ho pa raha. Browser storage blocked hai.");return false}}
-function render(){let q=norm($("search").value),list=data.filter(p=>!q||[p.product,p.density,p.thickness,p.unit,p.stock,p.rate].some(x=>norm(x).includes(q)));
-$("body").innerHTML=list.length?list.map(p=>`<tr><td>${esc(p.product)}</td><td>${esc(p.density)}</td><td>${esc(p.thickness)}</td><td>${esc(p.unit)}</td><td><b>${p.stock}</b></td><td>${money(p.rate)}</td><td class=row><button onclick="edit('${p.id}')">Edit</button><button onclick="del('${p.id}')">Delete</button></td></tr>`).join(""):'<tr><td colspan="7" class=empty>No products added.</td></tr>';
-$("total").textContent=data.reduce((a,p)=>a+Number(p.stock||0),0).toLocaleString("en-IN");$("value").textContent=money(data.reduce((a,p)=>a+Number(p.stock||0)*Number(p.rate||0),0))}
-function openForm(m,p=null){mode=m;$("form").classList.remove("hidden");$("formTitle").textContent=m==="in"?"➕ Stock In":m==="out"?"➖ Stock Out":"➕ Add Product";["product","density","thickness","stock","rate"].forEach(x=>$(x).value="");$("unit").value="pcs";delete $("form").dataset.id;if(p){$("product").value=p.product||"";$("density").value=p.density||"";$("thickness").value=p.thickness||"";$("unit").value=p.unit||"pcs";$("stock").value=Number(p.stock||0);$("rate").value=Number(p.rate||0);$("form").dataset.id=p.id;$("formTitle").textContent="✏️ Edit Product";mode="edit"}$("form").scrollIntoView({behavior:"smooth"})}
-function closeForm(){$("form").classList.add("hidden")}
-function saveProduct(){const p=$("product").value.trim(),d=$("density").value.trim(),t=$("thickness").value.trim(),u=$("unit").value.trim()||"pcs",s=Number($("stock").value),r=Number($("rate").value);if(!p||!d||!t||!Number.isFinite(s)||s<0||!Number.isFinite(r)||r<0){alert("Please fill all product fields correctly.");return}const id=$("form").dataset.id;if(mode==="edit"){const x=data.find(v=>v.id===id);if(!x){alert("Product not found.");return}Object.assign(x,{product:p,density:d,thickness:t,unit:u,stock:s,rate:r})}else if(mode==="in"||mode==="out"){const x=data.find(v=>norm(v.product)===norm(p)&&norm(v.density)===norm(d)&&norm(v.thickness)===norm(t));if(!x){alert("Product not found. Add it first.");return}if(mode==="out"&&s>x.stock){alert("Stock Out cannot exceed current stock.");return}x.stock+=mode==="in"?s:-s;x.rate=r||x.rate}else data.push({id:(window.crypto&&typeof crypto.randomUUID==='function'?crypto.randomUUID():'id_'+Date.now()+'_'+Math.random().toString(36).slice(2)),product:p,density:d,thickness:t,unit:u,stock:s,rate:r});if(save()){closeForm();$("status").textContent="Saved successfully."}}
-function edit(id){const p=data.find(x=>x.id===id);if(p)openForm("edit",p)}
-function del(id){if(confirm("Delete this product?")){data=data.filter(x=>x.id!==id);save()}}
-const numberWords={ek:1,do:2,teen:3,char:4,chaar:4,paanch:5,panch:5,chhe:6,che:6,saat:7,aath:8,nau:9,das:10,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,"एक":1,"दो":2,"तीन":3,"चार":4,"पाँच":5,"पांच":5,"छह":6,"छः":6,"सात":7,"आठ":8,"नौ":9,"दस":10};
-function parse(text){const original=String(text||"");const t=norm(original);const d=t.match(/(\d+(?:\.\d+)?)\s*density/);const th=t.match(/(\d+(?:\.\d+)?)\s*inch/);if(!d||!th)return null;let q=null;let m=t.match(/(\d+(?:\.\d+)?)\s*(?:gadde|gadda|pcs|piece|pieces|items|नग)\b/i);if(m)q=Number(m[1]);if(q===null){const wm=original.match(/\b(एक|दो|तीन|चार|पाँच|पांच|छह|छः|सात|आठ|नौ|दस)\s*(?:गद्दे|गद्दों|गद्दा)\b/);if(wm)q=numberWords[wm[1]]}if(q===null){m=t.match(/\b(ek|do|teen|char|chaar|paanch|panch|chhe|che|saat|aath|nau|das|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:gadde|gadda)\b/i);if(m)q=numberWords[m[1]]}if(q===null){const nums=[...t.matchAll(/\b\d+(?:\.\d+)?\b/g)].map(x=>Number(x[0]));const excluded=new Set([Number(d[1]),Number(th[1])]);const remaining=nums.filter(x=>!excluded.has(x));if(remaining.length)q=remaining[remaining.length-1]}if(q===null)q=1;const out=/(\bbik\b|\bbike\b|\bbikgaye\b|\bbikgaya\b|\bsell\b|\bsold\b|\bsale\b|\bout\b|\bremove\b|\bnikal\b|\bbech\b|बिक|बेच|निकाल)/i.test(t);const inn=/(\baaya\b|\baaye\b|\badd\b|\bin\b|\bmila\b|\bpurchase\b|\bkharida\b|आया|आए|जमा)/i.test(t);return{q,d:d[1],th:th[1]+" inch",out,in:inn}}
-$("process").onclick=()=>{const c=parse($("cmd").value);if(!c){$("status").textContent="Command samajh nahi aaya. Example: 40 density ke 4 inch ke 2 gadde bik gaye";return}const p=data.find(x=>norm(x.density)===norm(c.d)&&norm(x.thickness)===norm(c.th));if(!p){$("status").textContent="This density/thickness product is not in inventory.";return}if(c.out){if(Number(p.stock)<c.q){$("status").textContent="Insufficient stock. Current: "+p.stock+" "+p.unit;return}p.stock=Number(p.stock)-c.q}else if(c.in)p.stock=Number(p.stock)+c.q;else{$("status").textContent="Say sold/bik gaye or add/aaya.";return}save();$("status").textContent=(c.out?"Stock Out: ":"Stock In: ")+c.q+" "+p.unit+". New stock: "+p.stock}
-$("speak").onclick=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){$("status").textContent="Voice recognition unavailable here. Type the command.";return}const r=new SR();r.lang="hi-IN";r.interimResults=false;r.maxAlternatives=1;r.onstart=()=>$("status").textContent="🎙️ Listening...";r.onresult=e=>{$("cmd").value=e.results[0][0].transcript;$("status").textContent="Voice captured. Press Process."};r.onerror=e=>$("status").textContent="Voice error: "+e.error;r.start()}
-render();
-</script></body></html>
+
+/* =========================
+   STORAGE
+========================= */
+
+const KEY = "city_group_stock_manager_v1";
+
+let data = [];
+
+try {
+
+    const raw = localStorage.getItem(KEY);
+
+    data = raw ? JSON.parse(raw) : [];
+
+    if (!Array.isArray(data)) data = [];
+
+} catch(e) {
+
+    data = [];
+
+}
+
+
+/* =========================
+   HELPERS
+========================= */
+
+const $ = id => document.getElementById(id);
+
+function norm(s){
+
+    return String(s ?? "")
+        .toLowerCase()
+        .replace(/[\u200b-\u200d\ufeff]/g," ")
+        .replace(/डेंसिटी/g," density ")
+        .replace(/इंच/g," inch ")
+        .replace(/गद्दों/g," gadde ")
+        .replace(/गद्दे/g," gadde ")
+        .replace(/गद्दा/g," gadda ")
+        .replace(/बिक गए/g," bik gaye ")
+        .replace(/बिक गये/g," bik gaye ")
+        .replace(/बिके/g," bike ")
+        .replace(/बेच दिए/g," bech diye ")
+        .replace(/बेच दिये/g," bech diye ")
+        .replace(/बेच/g," bech ")
+        .replace(/आए/g," aaye ")
+        .replace(/आया/g," aaya ")
+        .replace(/जमा/g," jama ")
+        .replace(/[^\p{L}\p{N}.\s-]/gu," ")
+        .replace(/\s+/g," ")
+        .trim();
+
+}
+
+function money(n){
+
+    return "₹" +
+        Number(n || 0).toLocaleString("en-IN",{
+            maximumFractionDigits:2
+        });
+
+}
+
+function esc(s){
+
+    return String(s ?? "").replace(/[&<>"']/g,c => ({
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        '"':"&quot;",
+        "'":"&#039;"
+    }[c]));
+
+}
+
+
+/* =========================
+   SAVE
+========================= */
+
+function save(){
+
+    try{
+
+        localStorage.setItem(KEY,JSON.stringify(data));
+
+        render();
+
+        return true;
+
+    }catch(e){
+
+        alert("Data save nahi ho pa raha.");
+
+        return false;
+
+    }
+
+}
+
+
+/* =========================
+   RENDER
+========================= */
+
+function render(){
+
+    const q = norm($("search").value);
+
+    const list = data.filter(p => {
+
+        return !q ||
+        [
+            p.product,
+            p.density,
+            p.thickness,
+            p.unit,
+            p.stock,
+            p.rate
+        ].some(x => norm(x).includes(q));
+
+    });
+
+    $("body").innerHTML = list.length
+
+    ? list.map(p => `
+
+        <tr>
+
+        <td>${esc(p.product)}</td>
+        <td>${esc(p.density)}</td>
+        <td>${esc(p.thickness)}</td>
+        <td>${esc(p.unit || "pcs")}</td>
+
+        <td><b>${Number(p.stock || 0)}</b></td>
+
+        <td>${money(p.rate)}</td>
+
+        <td class="row">
+
+        <button onclick="editProduct('${p.id}')">
+        Edit
+        </button>
+
+        <button onclick="deleteProduct('${p.id}')">
+        Delete
+        </button>
+
+        </td>
+
+        </tr>
+
+    `).join("")
+
+    : `
+        <tr>
+        <td colspan="7" class="empty">
+        No products added.
+        </td>
+        </tr>
+    `;
+
+
+    const total = data.reduce(
+        (a,p) => a + Number(p.stock || 0),
+        0
+    );
+
+    const value = data.reduce(
+        (a,p) =>
+        a +
+        Number(p.stock || 0) *
+        Number(p.rate || 0),
+        0
+    );
+
+    $("total").textContent =
+        total.toLocaleString("en-IN");
+
+    $("value").textContent =
+        money(value);
+
+}
+
+
+/* =========================
+   FORM
+========================= */
+
+let mode = "add";
+
+function openForm(m,p=null){
+
+    mode = m;
+
+    $("form").classList.remove("hidden");
+
+    $("product").value = "";
+    $("density").value = "";
+    $("thickness").value = "";
+    $("stock").value = "";
+    $("rate").value = "";
+
+    $("unit").value = "pcs";
+
+    delete $("form").dataset.id;
+
+
+    if(m === "in"){
+
+        $("formTitle").textContent = "➕ Stock In";
+
+    }
+
+    else if(m === "out"){
+
+        $("formTitle").textContent = "➖ Stock Out";
+
+    }
+
+    else{
+
+        $("formTitle").textContent = "➕ Add Product";
+
+    }
+
+
+    if(p){
+
+        $("product").value = p.product || "";
+        $("density").value = p.density || "";
+        $("thickness").value = p.thickness || "";
+        $("unit").value = p.unit || "pcs";
+        $("stock").value = Number(p.stock || 0);
+        $("rate").value = Number(p.rate || 0);
+
+        $("form").dataset.id = p.id;
+
+        $("formTitle").textContent =
+            "✏️ Edit Product";
+
+        mode = "edit";
+
+    }
+
+
+    $("form").scrollIntoView({
+        behavior:"smooth"
+    });
+
+}
+
+function closeForm(){
+
+    $("form").classList.add("hidden");
+
+}
+
+
+/* =========================
+   SAVE PRODUCT / STOCK
+========================= */
+
+function saveProduct(){
+
+    const product =
+        $("product").value.trim();
+
+    const density =
+        $("density").value.trim();
+
+    const thickness =
+        $("thickness").value.trim();
+
+    const unit =
+        $("unit").value.trim() || "pcs";
+
+    const stock =
+        Number($("stock").value);
+
+    const rate =
+        Number($("rate").value);
+
+
+    if(
+        !product ||
+        !density ||
+        !thickness ||
+        !Number.isFinite(stock) ||
+        stock < 0 ||
+        !Number.isFinite(rate) ||
+        rate < 0
+    ){
+
+        alert("Please fill all fields correctly.");
+
+        return;
+
+    }
+
+
+    /* EDIT */
+
+    if(mode === "edit"){
+
+        const id = $("form").dataset.id;
+
+        const p = data.find(x => x.id === id);
+
+        if(!p){
+
+            alert("Product not found.");
+
+            return;
+
+        }
+
+        p.product = product;
+        p.density = density;
+        p.thickness = thickness;
+        p.unit = unit;
+        p.stock = stock;
+        p.rate = rate;
+
+        if(save()){
+
+            closeForm();
+
+            $("status").textContent =
+                "Product updated successfully.";
+
+        }
+
+        return;
+
+    }
+
+
+    /* STOCK IN / OUT */
+
+    if(mode === "in" || mode === "out"){
+
+        const p = findExactProduct(
+            density,
+            thickness
+        );
+
+        if(!p){
+
+            alert(
+                "Product not found. Add this product first."
+            );
+
+            return;
+
+        }
+
+
+        if(mode === "out"){
+
+            if(stock > Number(p.stock)){
+
+                alert(
+                    "Stock Out cannot exceed current stock."
+                );
+
+                return;
+
+            }
+
+            p.stock =
+                Number(p.stock) - stock;
+
+        }else{
+
+            p.stock =
+                Number(p.stock) + stock;
+
+        }
+
+
+        if(save()){
+
+            closeForm();
+
+            $("status").textContent =
+                mode === "out"
+                ? "Stock Out saved successfully."
+                : "Stock In saved successfully.";
+
+        }
+
+        return;
+
+    }
+
+
+    /* ADD NEW PRODUCT */
+
+    data.push({
+
+        id:
+            window.crypto &&
+            typeof crypto.randomUUID === "function"
+
+            ? crypto.randomUUID()
+
+            : "id_" +
+              Date.now() +
+              "_" +
+              Math.random()
+              .toString(36)
+              .slice(2),
+
+        product,
+        density,
+        thickness,
+        unit,
+        stock,
+        rate
+
+    });
+
+
+    if(save()){
+
+        closeForm();
+
+        $("status").textContent =
+            "Product added successfully.";
+
+    }
+
+}
+
+
+/* =========================
+   EXACT PRODUCT MATCH
+========================= */
+
+function findExactProduct(density,thickness){
+
+    const d = norm(density);
+    const t = norm(thickness);
+
+    return data.find(p => {
+
+        return (
+            norm(p.density) === d &&
+            norm(p.thickness) === t
+        );
+
+    });
+
+}
+
+
+/* =========================
+   EDIT
+========================= */
+
+function editProduct(id){
+
+    const p = data.find(x => x.id === id);
+
+    if(!p){
+
+        alert("Product not found.");
+
+        return;
+
+    }
+
+    openForm("edit",p);
+
+}
+
+
+/* =========================
+   DELETE
+========================= */
+
+function deleteProduct(id){
+
+    const p = data.find(x => x.id === id);
+
+    if(!p) return;
+
+    if(
+        confirm(
+            "Delete " +
+            p.product +
+            " (" +
+            p.density +
+            ", " +
+            p.thickness +
+            ")?"
+        )
+    ){
+
+        data =
+            data.filter(x => x.id !== id);
+
+        save();
+
+        $("status").textContent =
+            "Product deleted.";
+
+    }
+
+}
+
+
+/* =========================
+   NUMBER WORDS
+========================= */
+
+const numberWords = {
+
+    ek:1,
+    do:2,
+    teen:3,
+    char:4,
+    chaar:4,
+    paanch:5,
+    panch:5,
+    chhe:6,
+    che:6,
+    saat:7,
+    aath:8,
+    nau:9,
+    das:10,
+
+    one:1,
+    two:2,
+    three:3,
+    four:4,
+    five:5,
+    six:6,
+    seven:7,
+    eight:8,
+    nine:9,
+    ten:10,
+
+    "एक":1,
+    "दो":2,
+    "तीन":3,
+    "चार":4,
+    "पाँच":5,
+    "पांच":5,
+    "छह":6,
+    "छः":6,
+    "सात":7,
+    "आठ":8,
+    "नौ":9,
+    "दस":10
+
+};
+
+
+/* =========================
+   COMMAND PARSER
+========================= */
+
+function parseCommand(text){
+
+    const original =
+        String(text || "");
+
+    const t = norm(original);
+
+
+    /* DENSITY */
+
+    const densityMatch =
+        t.match(
+            /(\d+(?:\.\d+)?)\s*density\b/i
+        );
+
+    if(!densityMatch){
+
+        return null;
+
+    }
+
+
+    /* THICKNESS */
+
+    const thicknessMatch =
+        t.match(
+            /(\d+(?:\.\d+)?)\s*inch\b/i
+        );
+
+    if(!thicknessMatch){
+
+        return null;
+
+    }
+
+
+    const density =
+        densityMatch[1];
+
+    const thickness =
+        thicknessMatch[1];
+
+
+    /* =====================
+       QUANTITY
+       VERY IMPORTANT:
+       NEVER USE DENSITY OR
+       THICKNESS AS QUANTITY
+    ===================== */
+
+    let quantity = null;
+
+
+    /* 2 gadde / 2 gadda / 2 pcs */
+
+    let m =
+        t.match(
+            /(\d+(?:\.\d+)?)\s*(?:gadde|gadda|pcs|piece|pieces|items|unit|units|नग)\b/i
+        );
+
+    if(m){
+
+        quantity =
+            Number(m[1]);
+
+    }
+
+
+    /* Hindi:
+       दो गद्दे
+       चार गद्दे
+    */
+
+    if(quantity === null){
+
+        const hm =
+            original.match(
+                /(एक|दो|तीन|चार|पाँच|पांच|छह|छः|सात|आठ|नौ|दस)\s*(?:गद्दे|गद्दों|गद्दा)/
+            );
+
+        if(hm){
+
+            quantity =
+                numberWords[hm[1]];
+
+        }
+
+    }
+
+
+    /* Roman Hindi:
+       do gadde
+       char gadde
+    */
+
+    if(quantity === null){
+
+        const rm =
+            t.match(
+                /\b(ek|do|teen|char|chaar|paanch|panch|chhe|che|saat|aath|nau|das|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:gadde|gadda)\b/i
+            );
+
+        if(rm){
+
+            quantity =
+                numberWords[rm[1].toLowerCase()];
+
+        }
+
+    }
+
+
+    /* =====================
+       LAST RESORT
+       Ignore density + thickness
+    ===================== */
+
+    if(quantity === null){
+
+        const nums =
+            [...t.matchAll(
+                /\b\d+(?:\.\d+)?\b/g
+            )]
+            .map(x => Number(x[0]));
+
+
+        const dNum =
+            Number(density);
+
+        const tNum =
+            Number(thickness);
+
+
+        const remaining =
+            nums.filter(
+                x => x !== dNum && x !== tNum
+            );
+
+
+        if(remaining.length){
+
+            quantity =
+                remaining[remaining.length - 1];
+
+        }
+
+    }
+
+
+    if(
+        quantity === null ||
+        !Number.isFinite(quantity) ||
+        quantity <= 0
+    ){
+
+        quantity = 1;
+
+    }
+
+
+    /* =====================
+       STOCK OUT
+    ===================== */
+
+    const out =
+        /(
+            \bbik\b|
+            \bbike\b|
+            \bbikgaye\b|
+            \bbikgaya\b|
+            \bsell\b|
+            \bsold\b|
+            \bsale\b|
+            \bout\b|
+            \bremove\b|
+            \bnikal\b|
+            \bnikala\b|
+            \bbech\b|
+            बिक|
+            बेचा|
+            बेचे|
+            बेच|
+            निकाला|
+            निकले
+        )/ix.test(t);
+
+
+    /* =====================
+       STOCK IN
+    ===================== */
+
+    const incoming =
+        /(
+            \baaya\b|
+            \baaye\b|
+            \badd\b|
+            \bin\b|
+            \bmila\b|
+            \bmile\b|
+            \bpurchase\b|
+            \bkharida\b|
+            \breceived\b|
+            आया|
+            आए|
+            मिला|
+            मिले|
+            जमा|
+            खरीदा
+        )/ix.test(t);
+
+
+    return {
+
+        density,
+        thickness,
+        quantity,
+        out,
+        incoming
+
+    };
+
+}
+
+
+/* =========================
+   PROCESS COMMAND
+========================= */
+
+function processCommand(){
+
+    const raw =
+        $("cmd").value.trim();
+
+
+    if(!raw){
+
+        $("status").textContent =
+            "Please speak or type a command.";
+
+        return;
+
+    }
+
+
+    const command =
+        parseCommand(raw);
+
+
+    if(!command){
+
+        $("status").textContent =
+            "Command samajh nahi aaya. Example: 40 density ke 4 inch ke 2 gadde bik gaye";
+
+        return;
+
+    }
+
+
+    const product =
+        findExactProduct(
+            command.density,
+            command.thickness
+        );
+
+
+    if(!product){
+
+        $("status").textContent =
+            "40/4 product inventory mein nahi mila.";
+
+        return;
+
+    }
+
+
+    const current =
+        Number(product.stock || 0);
+
+    const qty =
+        Number(command.quantity);
+
+
+    /* =====================
+       STOCK OUT
+    ===================== */
+
+    if(command.out){
+
+        if(current < qty){
+
+            $("status").textContent =
+                "Insufficient stock. Current: " +
+                current +
+                " " +
+                (product.unit || "pcs");
+
+            return;
+
+        }
+
+
+        product.stock =
+            current - qty;
+
+
+        save();
+
+
+        $("status").textContent =
+            "🔴 Stock Out: " +
+            qty +
+            " " +
+            (product.unit || "pcs") +
+            ". New stock: " +
+            product.stock;
+
+
+        return;
+
+    }
+
+
+    /* =====================
+       STOCK IN
+    ===================== */
+
+    if(command.incoming){
+
+        product.stock =
+            current + qty;
+
+
+        save();
+
+
+        $("status").textContent =
+            "🟢 Stock In: " +
+            qty +
+            " " +
+            (product.unit || "pcs") +
+            ". New stock: " +
+            product.stock;
+
+
+        return;
+
+    }
+
+
+    $("status").textContent =
+        "Please say 'bik gaye' for Stock Out or 'aaye' for Stock In.";
+
+}
+
+
+/* =========================
+   BUTTON
+========================= */
+
+$("process").onclick =
+    processCommand;
+
+
+/* =========================
+   VOICE
+========================= */
+
+$("speak").onclick = function(){
+
+    const SR =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+
+    if(!SR){
+
+        $("status").textContent =
+            "Voice recognition unavailable. Type the command.";
+
+        return;
+
+    }
+
+
+    try{
+
+        const recognition =
+            new SR();
+
+
+        recognition.lang =
+            "hi-IN";
+
+        recognition.interimResults =
+            false;
+
+        recognition.maxAlternatives =
+            3;
+
+
+        recognition.onstart =
+            function(){
+
+                $("status").textContent =
+                    "🎙️ Listening...";
+
+            };
+
+
+        recognition.onresult =
+            function(e){
+
+                const text =
+                    e.results[0][0].transcript || "";
+
+
+                $("cmd").value =
+                    text;
+
+
+                $("status").textContent =
+                    text
+                    ? "Voice captured. Press Process."
+                    : "Voice not capture

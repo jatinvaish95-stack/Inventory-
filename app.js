@@ -1,718 +1,284 @@
-const KEY = "city_group_inventory_v1";
+const KEY="city_group_inventory_v1";
+let inventory=[];
 
-let inventory = [];
+try{
+  inventory=JSON.parse(localStorage.getItem(KEY)||"[]");
+  if(!Array.isArray(inventory)) inventory=[];
+}catch(e){inventory=[]}
 
-try {
-  inventory = JSON.parse(localStorage.getItem(KEY) || "[]");
-  if (!Array.isArray(inventory)) inventory = [];
-} catch (e) {
-  inventory = [];
+const $=id=>document.getElementById(id);
+
+function norm(s){
+  return String(s||"").toLowerCase()
+    .replace(/inches?/g,"inch")
+    .replace(/[^\p{L}\p{N}.\s-]/gu," ")
+    .replace(/\s+/g," ").trim();
 }
 
-const $ = id => document.getElementById(id);
-
-
-/* =========================
-   TEXT NORMALIZE
-========================= */
-
-function norm(value) {
-  return String(value || "")
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}.\s-]/gu, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-
-/* =========================
-   ESCAPE HTML
-========================= */
-
-function esc(value) {
-  return String(value ?? "").replace(
-    /[&<>"']/g,
-    ch => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#039;"
-    }[ch])
-  );
-}
-
-
-/* =========================
-   SAVE
-========================= */
-
-function save() {
-  localStorage.setItem(KEY, JSON.stringify(inventory));
+function save(){
+  localStorage.setItem(KEY,JSON.stringify(inventory));
   render();
 }
 
+function esc(s){
+  return String(s??"").replace(/[&<>"']/g,m=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",
+    '"':"&quot;","'":"&#039;"
+  }[m]));
+}
 
-/* =========================
-   RENDER
-========================= */
+function render(){
+  const q=norm($("search")?.value||"");
+  const list=inventory.filter(x=>
+    [x.product,x.density,x.thickness,x.unit]
+    .some(v=>norm(v).includes(q))
+  );
 
-function render() {
-
-  const body = $("inventoryBody");
-
-  if (!body) return;
-
-  const search = $("search");
-  const q = search ? norm(search.value) : "";
-
-  const rows = inventory.filter(item => {
-
-    return [
-      item.product,
-      item.density,
-      item.thickness,
-      item.unit
-    ].some(value =>
-      norm(value).includes(q)
-    );
-  });
-
-
-  body.innerHTML = rows.map(item => `
+  $("inventoryBody").innerHTML=list.map(x=>`
     <tr>
-      <td>${esc(item.product)}</td>
-      <td>${esc(item.density)}</td>
-      <td>${esc(item.thickness)}</td>
-      <td>${esc(item.unit || "pcs")}</td>
-      <td>${Number(item.stock || 0)}</td>
-      <td>₹${Number(item.rate || 0).toLocaleString("en-IN")}</td>
+      <td>${esc(x.product)}</td>
+      <td>${esc(x.density)}</td>
+      <td>${esc(x.thickness)}</td>
+      <td>${esc(x.unit||"pcs")}</td>
+      <td>${Number(x.stock||0)}</td>
+      <td>₹${Number(x.rate||0).toLocaleString("en-IN")}</td>
     </tr>
   `).join("");
 
+  $("empty").style.display=list.length?"none":"block";
 
-  if ($("empty")) {
-    $("empty").style.display =
-      rows.length ? "none" : "block";
-  }
-
-
-  const totalUnits = inventory.reduce(
-    (total, item) =>
-      total + Number(item.stock || 0),
-    0
+  const total=inventory.reduce(
+    (a,x)=>a+Number(x.stock||0),0
   );
 
-
-  const totalValue = inventory.reduce(
-    (total, item) =>
-      total +
-      Number(item.stock || 0) *
-      Number(item.rate || 0),
-    0
+  const value=inventory.reduce(
+    (a,x)=>a+Number(x.stock||0)*Number(x.rate||0),0
   );
 
-
-  if ($("totalUnits")) {
-    $("totalUnits").textContent = totalUnits;
-  }
-
-
-  if ($("inventoryValue")) {
-    $("inventoryValue").textContent =
-      "₹" + totalValue.toLocaleString("en-IN");
-  }
+  $("totalUnits").textContent=total;
+  $("inventoryValue").textContent=
+    "₹"+value.toLocaleString("en-IN");
 }
 
-
-/* =========================
-   PRODUCT FORM
-========================= */
-
-function openProduct() {
-
-  const dialog = $("productDialog");
-
-  if (dialog) {
-    dialog.showModal();
-  }
+function openProduct(){
+  $("productDialog").showModal();
 }
 
+$("inventoryBtn").onclick=openProduct;
 
-/* =========================
-   ADD PRODUCT
-========================= */
+$("stockInBtn").onclick=()=>{
+  $("command").value="stock in ";
+  $("command").focus();
+};
 
-function addProduct(event) {
+$("stockOutBtn").onclick=()=>{
+  $("command").value="stock out ";
+  $("command").focus();
+};
 
-  event.preventDefault();
+$("rateBtn").onclick=()=>{
+  $("search").focus();
+};
 
-  const product =
-    $("product").value.trim();
+$("cancelProduct").onclick=()=>{
+  $("productDialog").close();
+};
 
-  const density =
-    $("density").value.trim();
+$("productForm").onsubmit=e=>{
+  e.preventDefault();
 
-  const thickness =
-    $("thickness").value.trim();
+  const p={
+    product:$("product").value.trim(),
+    density:$("density").value.trim(),
+    thickness:$("thickness").value.trim(),
+    unit:$("unit").value.trim()||"pcs",
+    stock:Number($("stock").value||0),
+    rate:Number($("rate").value||0)
+  };
 
-  const unit =
-    $("unit").value.trim() || "pcs";
-
-  const stock =
-    Number($("stock").value || 0);
-
-  const rate =
-    Number($("rate").value || 0);
-
-
-  if (!product) {
-
-    $("status").textContent =
-      "Please enter product name.";
-
+  if(!p.product){
+    $("status").textContent="Please enter product name.";
     return;
   }
 
-
-  inventory.push({
-    product,
-    density,
-    thickness,
-    unit,
-    stock,
-    rate
-  });
-
-
+  inventory.push(p);
   save();
 
-
   $("productForm").reset();
-
-  if ($("unit")) $("unit").value = "pcs";
-  if ($("stock")) $("stock").value = "0";
-  if ($("rate")) $("rate").value = "0";
-
-
+  $("unit").value="pcs";
+  $("stock").value="0";
+  $("rate").value="0";
   $("productDialog").close();
 
+  $("status").textContent="Product saved successfully.";
+};
 
-  $("status").textContent =
-    "Product saved successfully.";
+function isOut(text){
+  const n=norm(text);
+
+  return /\b(bik|bike|bicke|biki|sell|sold|sale|out|remove|nikal|nikala|gaye|gaya)\b/i.test(n)
+    || /बिक|बेच|बिके|गये|गया|निकाल|निकला/.test(n);
 }
 
+function getQty(text){
+  const n=norm(text);
 
-/* =========================
-   DETECT STOCK OUT
-========================= */
-
-function isStockOut(text) {
-
-  const n = norm(text);
-
-  const english =
-    /\b(bik|bike|bicke|biki|bikgaye|bikgaya|sell|sold|sale|out|remove|nikal|nikala|nikle|gaye|gaya)\b/i;
-
-  const hindi =
-    /बिक|बेच|बिके|बिकगये|बिकगया|गये|गया|निकाल|निकला|बेचा/;
-
-  return english.test(n) || hindi.test(n);
-}
-
-
-/* =========================
-   FIND QUANTITY
-========================= */
-
-function getQuantity(text) {
-
-  const n = norm(text);
-
-
-  /*
-     First look for:
-     2 gadde
-     2 gadda
-     2 pcs
-     2 piece
-     2 units
-     2 नग
-  */
-
-  const withUnit = n.match(
-    /(\d+(?:\.\d+)?)\s*(gadde|gadda|gadday|pcs|piece|pieces|unit|units|नग|गद्दे|गद्दा)/i
+  const m=n.match(
+    /(\d+(?:\.\d+)?)\s*(?:gadde|gadda|gadday|pcs|piece|pieces|unit|units|नग|गद्दे|गद्दा)/i
   );
 
+  if(m) return Number(m[1]);
 
-  if (withUnit) {
-    return Number(withUnit[1]);
-  }
+  const num=n.match(/\b(\d+(?:\.\d+)?)\b/);
 
+  return num?Number(num[1]):1;
+}
 
-  /*
-     Otherwise use a standalone number.
-     Example:
-     stock out 2
-  */
+function findProduct(text,out){
+  const n=norm(text);
 
-  const number = n.match(
-    /\b(\d+(?:\.\d+)?)\b/
+  const dm=n.match(
+    /(\d+(?:\.\d+)?)\s*(?:density|डेंसिटी)/
   );
 
+  const tm=n.match(
+    /(\d+(?:\.\d+)?)\s*(?:inch|इंच)/
+  );
 
-  if (number) {
-    return Number(number[1]);
-  }
+  if(dm&&tm){
 
+    const d=norm(dm[1]);
+    const t=norm(tm[1]+" inch");
 
-  return 1;
-}
-
-
-/* =========================
-   PRODUCT WORD MATCH
-========================= */
-
-function productWordMatch(text, product) {
-
-  const n = norm(text);
-  const p = norm(product);
-
-
-  if (!p) return false;
-
-
-  if (n.includes(p)) {
-    return true;
-  }
-
-
-  if (
-    (p === "gadda" || p === "gadde") &&
-    (
-      n.includes("gadda") ||
-      n.includes("gadde") ||
-      n.includes("gadday") ||
-      n.includes("गद्दा") ||
-      n.includes("गद्दे")
-    )
-  ) {
-    return true;
-  }
-
-
-  return false;
-}
-
-
-/* =========================
-   FIND PRODUCT
-========================= */
-
-function findProduct(text, stockOut) {
-
-  const n = norm(text);
-
-
-  /*
-     Get density + thickness matches
-  */
-
-  const matches = inventory.filter(item => {
-
-    const density =
-      norm(item.density);
-
-    const thickness =
-      norm(item.thickness);
-
-
-    return (
-      density &&
-      thickness &&
-      n.includes(density) &&
-      n.includes(thickness)
-    );
-  });
-
-
-  if (matches.length) {
-
-    /*
-       If product name is also spoken,
-       prefer that product.
-    */
-
-    const named = matches.filter(item =>
-      productWordMatch(text, item.product)
+    const matches=inventory.filter(x=>
+      norm(x.density)===d &&
+      norm(x.thickness)===t
     );
 
+    if(matches.length){
 
-    const candidates =
-      named.length ? named : matches;
-
-
-    /*
-       Stock OUT:
-       choose the matching item
-       which actually has stock.
-    */
-
-    if (stockOut) {
-
-      const available =
-        candidates
-          .filter(item =>
-            Number(item.stock || 0) > 0
-          )
-          .sort(
-            (a, b) =>
-              Number(b.stock || 0) -
-              Number(a.stock || 0)
-          );
-
-
-      if (available.length) {
-        return available[0];
-      }
-
-
-      /*
-         Return first matching item
-         so user gets "Available: 0"
-         instead of Product not found.
-      */
-
-      return candidates[0];
-    }
-
-
-    return candidates[0];
-  }
-
-
-  /*
-     Product-name-only matching
-  */
-
-  const byName =
-    inventory.filter(item =>
-      productWordMatch(text, item.product)
-    );
-
-
-  if (stockOut) {
-
-    const available =
-      byName
-        .filter(item =>
-          Number(item.stock || 0) > 0
-        )
-        .sort(
-          (a, b) =>
-            Number(b.stock || 0) -
-            Number(a.stock || 0)
+      if(out){
+        const available=matches.find(
+          x=>Number(x.stock||0)>0
         );
 
+        if(available) return available;
+      }
 
-    if (available.length) {
-      return available[0];
+      return matches[0];
     }
   }
 
+  return inventory.find(x=>{
+    const p=norm(x.product);
 
-  return byName[0] || null;
+    if(!p) return false;
+
+    if(n.includes(p)) return true;
+
+    if(
+      (p==="gadda"||p==="gadde") &&
+      (
+        n.includes("gadda")||
+        n.includes("gadde")||
+        n.includes("गद्दा")||
+        n.includes("गद्दे")
+      )
+    ) return true;
+
+    return false;
+  })||null;
 }
 
+function processCommand(){
 
-/* =========================
-   PROCESS COMMAND
-========================= */
+  const raw=$("command").value.trim();
 
-function processCommand() {
-
-  const command =
-    $("command");
-
-  const status =
-    $("status");
-
-
-  if (!command || !status) {
-    return;
-  }
-
-
-  const raw =
-    command.value.trim();
-
-
-  if (!raw) {
-
-    status.textContent =
+  if(!raw){
+    $("status").textContent=
       "Please speak or type a command.";
-
     return;
   }
 
+  const out=isOut(raw);
+  const qty=getQty(raw);
+  const p=findProduct(raw,out);
 
-  const qty =
-    getQuantity(raw);
-
-
-  if (!qty || qty <= 0) {
-
-    status.textContent =
-      "Please enter a valid quantity.";
-
+  if(!p){
+    $("status").textContent=
+      "Product not found. Add it first.";
     return;
   }
 
+  const stock=Number(p.stock||0);
 
-  const stockOut =
-    isStockOut(raw);
+  if(out){
 
-
-  const product =
-    findProduct(raw, stockOut);
-
-
-  if (!product) {
-
-    status.textContent =
-      "Product not found. Please check density and thickness.";
-
-    return;
-  }
-
-
-  const currentStock =
-    Number(product.stock || 0);
-
-
-  /* =====================
-     STOCK OUT
-  ===================== */
-
-  if (stockOut) {
-
-    if (currentStock < qty) {
-
-      status.textContent =
-        `Not enough stock. Available: ${currentStock}`;
-
+    if(stock<qty){
+      $("status").textContent=
+        `Not enough stock. Available: ${stock}`;
       return;
     }
 
+    p.stock=stock-qty;
 
-    product.stock =
-      currentStock - qty;
+    $("status").textContent=
+      `Stock Out: ${qty} ${p.unit||"pcs"} from ${p.product}.`;
 
+  }else{
 
-    save();
+    p.stock=stock+qty;
 
-
-    status.textContent =
-      `Stock Out: ${qty} ${product.unit || "pcs"} from ${product.product}.`;
-
-    return;
+    $("status").textContent=
+      `Stock In: ${qty} ${p.unit||"pcs"} to ${p.product}.`;
   }
-
-
-  /* =====================
-     STOCK IN
-  ===================== */
-
-  product.stock =
-    currentStock + qty;
-
 
   save();
-
-
-  status.textContent =
-    `Stock In: ${qty} ${product.unit || "pcs"} to ${product.product}.`;
 }
 
+$("processBtn").onclick=processCommand;
 
-/* =========================
-   VOICE
-========================= */
+$("search").oninput=render;
 
-let recognition = null;
+let recognition=null;
 
+$("speakBtn").onclick=()=>{
 
-function startVoice() {
-
-  const SR =
-    window.SpeechRecognition ||
+  const SR=
+    window.SpeechRecognition||
     window.webkitSpeechRecognition;
 
-
-  if (!SR) {
-
-    $("status").textContent =
-      "Voice recognition is not supported. Please type the command.";
-
+  if(!SR){
+    $("status").textContent=
+      "Voice recognition is not supported. Type the command.";
     return;
   }
 
+  recognition=new SR();
+  recognition.lang="hi-IN";
+  recognition.interimResults=false;
+  recognition.maxAlternatives=1;
 
-  try {
+  recognition.onstart=()=>{
+    $("status").textContent="Listening… बोलिए।";
+  };
 
-    recognition = new SR();
+  recognition.onresult=e=>{
+    $("command").value=
+      e.results[0][0].transcript;
 
-    recognition.lang = "hi-IN";
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
+    $("status").textContent=
+      "Voice captured. Tap Process.";
+  };
 
+  recognition.onerror=e=>{
+    $("status").textContent=
+      "Voice error: "+e.error;
+  };
 
-    recognition.onstart = () => {
-
-      $("status").textContent =
-        "Listening… बोलिए।";
-    };
-
-
-    recognition.onresult = event => {
-
-      const text =
-        event.results[0][0].transcript;
-
-
-      $("command").value = text;
-
-
-      $("status").textContent =
-        "Voice captured. Tap Process.";
-    };
-
-
-    recognition.onerror = event => {
-
-      $("status").textContent =
-        "Voice error: " + event.error;
-    };
-
-
-    recognition.onend = () => {};
-
-
+  try{
     recognition.start();
+  }catch(e){}
+};
 
-  } catch (error) {
-
-    $("status").textContent =
-      "Voice could not start. Please allow microphone permission and use HTTPS.";
-  }
-}
-
-
-/* =========================
-   CONNECT BUTTONS
-========================= */
-
-function setup() {
-
-  if ($("inventoryBtn")) {
-    $("inventoryBtn").onclick =
-      openProduct;
-  }
-
-
-  if ($("stockInBtn")) {
-
-    $("stockInBtn").onclick = () => {
-
-      $("command").value =
-        "stock in ";
-
-      $("command").focus();
-
-      $("status").textContent =
-        "Type quantity and product, then tap Process.";
-    };
-  }
-
-
-  if ($("stockOutBtn")) {
-
-    $("stockOutBtn").onclick = () => {
-
-      $("command").value =
-        "stock out ";
-
-      $("command").focus();
-
-      $("status").textContent =
-        "Type quantity and product, then tap Process.";
-    };
-  }
-
-
-  if ($("rateBtn")) {
-
-    $("rateBtn").onclick = () => {
-
-      $("search").focus();
-    };
-  }
-
-
-  if ($("cancelProduct")) {
-
-    $("cancelProduct").onclick = () => {
-
-      $("productDialog").close();
-    };
-  }
-
-
-  if ($("productForm")) {
-
-    $("productForm").onsubmit =
-      addProduct;
-  }
-
-
-  if ($("processBtn")) {
-
-    $("processBtn").onclick =
-      processCommand;
-  }
-
-
-  if ($("search")) {
-
-    $("search").oninput =
-      render;
-  }
-
-
-  if ($("speakBtn")) {
-
-    $("speakBtn").onclick =
-      startVoice;
-  }
-
-
-  render();
-}
-
-
-/* =========================
-   START APP
-========================= */
-
-if (document.readyState === "loading") {
-
-  document.addEventListener(
-    "DOMContentLoaded",
-    setup
-  );
-
-} else {
-
-  setup();
-}
+render();

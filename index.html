@@ -105,29 +105,7 @@ try {
   if (oldRaw) data = JSON.parse(oldRaw);
   else if (newRaw) data = JSON.parse(newRaw);
   if (!Array.isArray(data)) data = [];
-
-  /* FIX: remove accidental duplicate product rows.
-     Same Product + Density + Thickness + Unit = ONE item.
-     Keep the first existing row so its stock is not doubled. */
-  const seen = new Set();
-  data = data.filter(x => {
-    const key = [
-      norm(x.product),
-      norm(x.density),
-      norm(x.thickness),
-      norm(x.unit || "pcs")
-    ].join("|");
-
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
 } catch(e) { data = []; }
-
-try {
-  localStorage.setItem(KEY, JSON.stringify(data));
-  localStorage.setItem(NEW_KEY, JSON.stringify(data));
-} catch(e) {}
 
 const $ = id => document.getElementById(id);
 
@@ -260,23 +238,10 @@ function saveProduct(){
     x.stock=Number(x.stock||0)+(mode==="in"?s:-s);
     if(r>0) x.rate=r;
   }else{
-    /* FIX: never create a second row for the same product specification. */
-    const existing = data.find(v =>
-      norm(v.product)===norm(p) &&
-      norm(v.density)===norm(d) &&
-      norm(v.thickness)===norm(t) &&
-      norm(v.unit||"pcs")===norm(u)
-    );
-
-    if(existing){
-      existing.stock = Number(existing.stock||0) + s;
-      if(r > 0) existing.rate = r;
-    }else{
-      data.push({
-        id:"id_"+Date.now()+"_"+Math.random().toString(36).slice(2),
-        product:p,density:d,thickness:t,unit:u,stock:s,rate:r
-      });
-    }
+    data.push({
+      id:"id_"+Date.now()+"_"+Math.random().toString(36).slice(2),
+      product:p,density:d,thickness:t,unit:u,stock:s,rate:r
+    });
   }
 
   if(save()){
@@ -392,39 +357,105 @@ function processCommand(){
 
 $("process").onclick=processCommand;
 
-$("speak").onclick=()=>{
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let activeRecognition = null;
+
+async function requestMicPermission(){
+  // Ask Chrome for microphone access before starting SpeechRecognition.
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    throw new Error("Microphone access is unavailable on this local page.");
+  }
+  const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+  stream.getTracks().forEach(track => track.stop());
+}
+
+$("speak").onclick = async ()=>{
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
   if(!SR){
-    $("status").textContent="Voice is not supported in this browser. Please open the Live app in Chrome.";
+    $("status").textContent =
+      "Voice recognition is not supported by this Chrome version.";
     return;
   }
+
+  if(activeRecognition){
+    try{ activeRecognition.stop(); }catch(e){}
+    activeRecognition = null;
+  }
+
+  $("status").textContent = "🎙️ Opening microphone...";
+
   try{
-    const r=new SR();
-    r.lang="hi-IN";
-    r.continuous=false;
-    r.interimResults=false;
-    r.maxAlternatives=3;
-    r.onstart=()=>$("status").textContent="🎙️ Listening... बोलिए।";
-    r.onresult=e=>{
-      const text=e.results?.[0]?.[0]?.transcript||"";
-      $("cmd").value=text;
-      $("status").textContent=text?"Voice captured. Press Process.":"Voice not captured. Please try again.";
-    };
-    r.onnomatch=()=>$("status").textContent="Voice not understood. Please speak clearly and try again.";
-    r.onerror=e=>{
-      const msg={
-        "not-allowed":"Microphone permission denied. Allow microphone for Chrome and try again.",
-        "service-not-allowed":"Speech service is unavailable. Open the Live app in Chrome and try again.",
-        "audio-capture":"Microphone is not available. Check phone microphone permission.",
-        "no-speech":"No speech detected. Tap Speak and say the command.",
-        "network":"Voice service needs an internet connection."
-      }[e.error]||("Voice error: "+e.error);
-      $("status").textContent=msg;
-    };
-    r.onend=()=>{};
-    r.start();
+    await requestMicPermission();
   }catch(e){
-    $("status").textContent="Voice could not start. Allow microphone permission and use the Live app in Chrome.";
+    const name = e?.name || "";
+    if(name === "NotAllowedError" || name === "PermissionDeniedError"){
+      $("status").textContent =
+        "🎙️ Chrome has blocked the microphone for this local page. " +
+        "Allow Microphone for Chrome, reload this page, and tap Speak again.";
+    }else if(name === "NotFoundError"){
+      $("status").textContent =
+        "🎙️ No microphone was found. Check the phone microphone.";
+    }else{
+      $("status").textContent =
+        "🎙️ Microphone could not be opened: " +
+        (e?.message || name || "unknown error");
+    }
+    return;
+  }
+
+  try{
+    const r = new SR();
+    activeRecognition = r;
+
+    r.lang = "hi-IN";
+    r.continuous = false;
+    r.interimResults = false;
+    r.maxAlternatives = 3;
+
+    r.onstart = ()=>{
+      $("status").textContent = "🎙️ Listening... बोलिए।";
+    };
+
+    r.onresult = e=>{
+      const text = e.results?.[0]?.[0]?.transcript || "";
+      $("cmd").value = text;
+      $("status").textContent = text
+        ? "✅ Voice captured. Press Process."
+        : "Voice not captured. Please try again.";
+    };
+
+    r.onnomatch = ()=>{
+      $("status").textContent =
+        "Voice not understood. Please speak clearly and try again.";
+    };
+
+    r.onerror = e=>{
+      const msg = {
+        "not-allowed":
+          "Microphone permission denied by Chrome. Allow microphone access and try again.",
+        "service-not-allowed":
+          "Speech service is unavailable in this browser.",
+        "audio-capture":
+          "Microphone is busy or unavailable. Check the phone microphone.",
+        "no-speech":
+          "No speech detected. Tap Speak and say the command.",
+        "network":
+          "Chrome speech recognition needs an internet connection."
+      }[e.error] || ("Voice error: " + e.error);
+
+      $("status").textContent = msg;
+    };
+
+    r.onend = ()=>{
+      activeRecognition = null;
+    };
+
+    r.start();
+
+  }catch(e){
+    activeRecognition = null;
+    $("status").textContent =
+      "Voice could not start: " + (e?.message || "unknown error");
   }
 };
 

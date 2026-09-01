@@ -1,660 +1,382 @@
-const KEY="city_group_inventory_v1";
-let inventory=JSON.parse(localStorage.getItem(KEY)||"[]");
+const KEY = "city_group_inventory_v1";
 
-const $=id=>document.getElementById(id);
+let inventory = [];
+try {
+  inventory = JSON.parse(localStorage.getItem(KEY) || "[]");
+  if (!Array.isArray(inventory)) inventory = [];
+} catch (e) {
+  inventory = [];
+}
 
-function norm(s){
-  return String(s||"")
+const $ = id => document.getElementById(id);
+
+function norm(s) {
+  return String(s ?? "")
     .toLowerCase()
-    .replace(/[^\p{L}\p{N}.\s-]/gu," ")
-    .replace(/\s+/g," ")
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    .replace(/इंच/g, " inch ")
+    .replace(/डेंसिटी/g, " density ")
+    .replace(/गद्दों/g, " gadde ")
+    .replace(/गद्दे/g, " gadde ")
+    .replace(/गद्दा/g, " gadda ")
+    .replace(/[^\p{L}\p{N}.\s-]/gu, " ")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
-/* =========================
-   PRODUCT NORMALIZATION
-========================= */
-
-function productNorm(s){
-  let v=norm(s);
-
-  v=v.replace(/gadde|gadday|gadda/gi,"gadda");
-  v=v.replace(/गद्दे|गद्दा/g,"gadda");
-
-  return v;
-}
-
-
-/* =========================
-   UNIQUE PRODUCT KEY
-========================= */
-
-function itemKey(x){
-
-  return [
-    productNorm(x.product),
-    norm(x.density),
-    norm(x.thickness)
-      .replace(/इंच/g,"inch"),
-    norm(x.unit || "pcs")
-  ].join("|");
-}
-
-
-/* =========================
-   MERGE DUPLICATES
-========================= */
-
-function mergeDuplicates(){
-
-  const merged=[];
-  const seen=new Map();
-
-  for(const x of inventory){
-
-    const key=itemKey(x);
-
-    if(seen.has(key)){
-
-      const existing=
-        merged[seen.get(key)];
-
-      existing.stock=
-        Number(existing.stock||0) +
-        Number(x.stock||0);
-
-      if(
-        !Number(existing.rate||0) &&
-        Number(x.rate||0)
-      ){
-        existing.rate=
-          Number(x.rate||0);
-      }
-
-    }else{
-
-      const copy={
-        ...x,
-        stock:Number(x.stock||0),
-        rate:Number(x.rate||0)
-      };
-
-      seen.set(
-        key,
-        merged.length
-      );
-
-      merged.push(copy);
-    }
-  }
-
-  inventory=merged;
-
-  localStorage.setItem(
-    KEY,
-    JSON.stringify(inventory)
-  );
-}
-
-
-/* =========================
-   SAVE
-========================= */
-
-function save(){
-
-  localStorage.setItem(
-    KEY,
-    JSON.stringify(inventory)
-  );
-
+function save() {
+  localStorage.setItem(KEY, JSON.stringify(inventory));
   render();
 }
 
-
-/* =========================
-   ESCAPE HTML
-========================= */
-
-function esc(s){
-
-  return String(s ?? "")
-    .replace(
-      /[&<>"']/g,
-      m=>({
-        "&":"&amp;",
-        "<":"&lt;",
-        ">":"&gt;",
-        '"':"&quot;",
-        "'":"&#039;"
-      }[m])
-    );
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, m => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  }[m]));
 }
 
+function render() {
+  const searchBox = $("search");
+  const q = norm(searchBox ? searchBox.value : "");
 
-/* =========================
-   RENDER
-========================= */
+  const rows = inventory.filter(x =>
+    [x.product, x.density, x.thickness, x.unit]
+      .some(v => norm(v).includes(q))
+  );
 
-function render(){
+  $("inventoryBody").innerHTML = rows.map(x => `
+    <tr>
+      <td>${esc(x.product)}</td>
+      <td>${esc(x.density)}</td>
+      <td>${esc(x.thickness)}</td>
+      <td>${esc(x.unit || "pcs")}</td>
+      <td>${Number(x.stock || 0)}</td>
+      <td>₹${Number(x.rate || 0).toLocaleString("en-IN")}</td>
+    </tr>
+  `).join("");
 
-  const q=
-    norm($("search").value);
+  $("empty").style.display = rows.length ? "none" : "block";
 
-  const rows=
-    inventory.filter(x=>
-      [
-        x.product,
-        x.density,
-        x.thickness,
-        x.unit
-      ].some(v=>
-        norm(v).includes(q)
-      )
-    );
+  const units = inventory.reduce(
+    (a, x) => a + Number(x.stock || 0),
+    0
+  );
 
-  $("inventoryBody").innerHTML=
-    rows.map(x=>`
+  const value = inventory.reduce(
+    (a, x) => a + Number(x.stock || 0) * Number(x.rate || 0),
+    0
+  );
 
-      <tr>
-
-        <td>${esc(x.product)}</td>
-
-        <td>${esc(x.density)}</td>
-
-        <td>${esc(x.thickness)}</td>
-
-        <td>${esc(x.unit)}</td>
-
-        <td>${Number(x.stock||0)}</td>
-
-        <td>
-          ₹${Number(x.rate||0)
-            .toLocaleString("en-IN")}
-        </td>
-
-      </tr>
-
-    `).join("");
-
-  $("empty").style.display=
-    rows.length ? "none" : "block";
-
-
-  const units=
-    inventory.reduce(
-      (total,x)=>
-        total+Number(x.stock||0),
-      0
-    );
-
-
-  const value=
-    inventory.reduce(
-      (total,x)=>
-        total+
-        Number(x.stock||0)*
-        Number(x.rate||0),
-      0
-    );
-
-
-  $("totalUnits").textContent=
-    units;
-
-  $("inventoryValue").textContent=
-    "₹"+
-    value.toLocaleString("en-IN");
+  $("totalUnits").textContent = units;
+  $("inventoryValue").textContent =
+    "₹" + value.toLocaleString("en-IN");
 }
 
+/* -----------------------------
+   PRODUCT MATCHING
+----------------------------- */
 
-/* =========================
-   PRODUCT FORM
-========================= */
+function findProduct(text) {
+  const n = norm(text);
 
-function openProduct(){
+  let best = null;
+  let bestScore = -1;
 
-  $("productDialog").showModal();
-}
+  inventory.forEach(x => {
+    const d = norm(x.density);
+    const t = norm(x.thickness);
+    const p = norm(x.product);
 
+    let score = 0;
 
-$("inventoryBtn").onclick=
-  openProduct;
-
-
-$("stockInBtn").onclick=()=>{
-
-  $("command").value=
-    "stock in ";
-
-  $("command").focus();
-};
-
-
-$("stockOutBtn").onclick=()=>{
-
-  $("command").value=
-    "stock out ";
-
-  $("command").focus();
-};
-
-
-$("rateBtn").onclick=()=>{
-
-  $("search").focus();
-};
-
-
-$("cancelProduct").onclick=()=>{
-
-  $("productDialog").close();
-};
-
-
-/* =========================
-   ADD PRODUCT
-========================= */
-
-$("productForm").onsubmit=e=>{
-
-  e.preventDefault();
-
-
-  const item={
-
-    product:
-      $("product").value.trim(),
-
-    density:
-      $("density").value.trim(),
-
-    thickness:
-      $("thickness").value.trim(),
-
-    unit:
-      $("unit").value.trim() || "pcs",
-
-    stock:
-      Number($("stock").value||0),
-
-    rate:
-      Number($("rate").value||0)
-  };
-
-
-  if(!item.product){
-
-    $("status").textContent=
-      "Please enter product name.";
-
-    return;
-  }
-
-
-  /* IMPORTANT:
-     Existing same product =
-     update stock instead of
-     creating another row.
-  */
-
-  const existing=
-    inventory.find(
-      x=>itemKey(x)===itemKey(item)
-    );
-
-
-  if(existing){
-
-    existing.stock=
-      Number(existing.stock||0)+
-      item.stock;
-
-    if(item.rate>0){
-
-      existing.rate=
-        item.rate;
+    // Density
+    if (d && n.includes(d)) {
+      score += 5;
     }
 
-  }else{
+    // Thickness
+    if (
+      t &&
+      (
+        n.includes(t) ||
+        n.replace(/\s/g, "").includes(t.replace(/\s/g, ""))
+      )
+    ) {
+      score += 5;
+    }
 
-    inventory.push(item);
-  }
+    // Product name
+    if (p && n.includes(p)) {
+      score += 3;
+    }
 
+    // Gadda/Gadde variants
+    if (
+      ["gadda", "gadde", "gadday"].includes(p) &&
+      /gadda|gadde|gadday/.test(n)
+    ) {
+      score += 3;
+    }
 
-  save();
+    // IMPORTANT:
+    // If multiple matching products exist,
+    // prefer the one which actually has stock.
+    if (Number(x.stock || 0) > 0) {
+      score += 2;
+    }
 
+    if (score > bestScore) {
+      bestScore = score;
+      best = x;
+    }
+  });
 
-  $("productForm").reset();
-
-  $("unit").value="pcs";
-
-  $("stock").value="0";
-
-  $("rate").value="0";
-
-
-  $("productDialog").close();
-
-
-  $("status").textContent=
-    "Product saved successfully.";
-};
-
-
-/* =========================
-   FIND PRODUCT
-========================= */
-
-function findProduct(text){
-
-  const n=
-    norm(text)
-      .replace(/इंच/g,"inch");
-
-
-  /* First:
-     Density + Thickness
-  */
-
-  const bySpec=
-    inventory.find(x=>{
-
-      const d=
-        norm(x.density);
-
-      const t=
-        norm(x.thickness)
-          .replace(/इंच/g,"inch");
-
-      return(
-        d &&
-        t &&
-        n.includes(d) &&
-        n.includes(t)
-      );
-    });
-
-
-  if(bySpec){
-
-    return bySpec;
-  }
-
-
-  /* Second:
-     Product name
-  */
-
-  return inventory.find(x=>{
-
-    const p=
-      productNorm(x.product);
-
-    return(
-      p &&
-      productNorm(n).includes(p)
-    );
-
-  }) || null;
+  // Density + thickness is enough to identify product.
+  return bestScore >= 10 ? best : null;
 }
 
+/* -----------------------------
+   QUANTITY
+----------------------------- */
 
-/* =========================
+const words = {
+  one: 1,
+  two: 2,
+  three: 3,
+  four: 4,
+  five: 5,
+  six: 6,
+  seven: 7,
+  eight: 8,
+  nine: 9,
+  ten: 10,
+
+  ek: 1,
+  do: 2,
+  teen: 3,
+  char: 4,
+  chaar: 4,
+  paanch: 5,
+  panch: 5,
+  chhe: 6,
+  che: 6,
+  saat: 7,
+  aath: 8,
+  nau: 9,
+  das: 10,
+
+  एक: 1,
+  दो: 2,
+  तीन: 3,
+  चार: 4,
+  पाँच: 5,
+  पांच: 5,
+  छह: 6,
+  छः: 6,
+  सात: 7,
+  आठ: 8,
+  नौ: 9,
+  दस: 10
+};
+
+function qtyOf(n) {
+
+  // First priority:
+  // number immediately before gadda/gadde
+  let m = n.match(
+    /(\d+(?:\.\d+)?)\s*(?:gadde|gadda|gadday|pcs|piece|pieces|unit|units|नग)\b/i
+  );
+
+  if (m) {
+    return Number(m[1]);
+  }
+
+  // Hindi / English number words
+  const parts = n.split(/\s+/);
+
+  for (let i = parts.length - 1; i >= 0; i--) {
+    if (words[parts[i]] !== undefined) {
+      return words[parts[i]];
+    }
+  }
+
+  // Otherwise use LAST numeric value.
+  const nums = n.match(/\b\d+(?:\.\d+)?\b/g);
+
+  if (nums && nums.length) {
+    return Number(nums[nums.length - 1]);
+  }
+
+  return 1;
+}
+
+/* -----------------------------
+   STOCK OUT DETECTION
+----------------------------- */
+
+function isOut(n) {
+  return /(
+    \bbik\b|
+    \bbike\b|
+    \bbicke\b|
+    \bbiki\b|
+    \bbikgaye\b|
+    \bbikgaya\b|
+    \bsell\b|
+    \bsold\b|
+    \bsale\b|
+    \bout\b|
+    \bremove\b|
+    \bnikal\b|
+    \bnikala\b|
+    \bnikle\b|
+    \bgaye\b|
+    \bgaya\b|
+    बिक|
+    बेच|
+    बिके|
+    बिकगये|
+    गये|
+    गया|
+    निकाल|
+    निकला
+  )/ix.test(n);
+}
+
+/* -----------------------------
    PROCESS COMMAND
-========================= */
+----------------------------- */
 
-function processCommand(){
+function processCommand() {
 
-  const raw=
-    $("command").value.trim();
+  const raw = $("command").value.trim();
 
-
-  if(!raw){
-
-    $("status").textContent=
+  if (!raw) {
+    $("status").textContent =
       "Please speak or type a command.";
-
     return;
   }
 
+  const n = norm(raw);
 
-  const n=
-    norm(raw);
+  const qty = qtyOf(n);
+  const out = isOut(n);
 
-
-  /* QUANTITY */
-
-  let qtyMatch=
-    n.match(
-      /(\d+(?:\.\d+)?)\s*
-      (?:gadde|gadda|gadday|pcs|piece|pieces|
-      unit|units|नग|गद्दे|गद्दा)/ix
-    );
-
-
-  let qty;
-
-
-  if(qtyMatch){
-
-    qty=
-      Number(qtyMatch[1]);
-
-  }else{
-
-    const numberMatch=
-      n.match(
-        /\b(\d+(?:\.\d+)?)\b/
-      );
-
-    qty=
-      numberMatch
-        ? Number(numberMatch[1])
-        : 1;
-  }
-
-
-  if(!qty || qty<=0){
-
-    $("status").textContent=
+  if (!qty || qty <= 0) {
+    $("status").textContent =
       "Please enter a valid quantity.";
-
     return;
   }
 
+  const p = findProduct(raw);
 
-  /* STOCK OUT */
-
-  const isOut=
-    /\b(
-      bik|
-      bike|
-      bicke|
-      biki|
-      bikgaye|
-      bikgaya|
-      sell|
-      sold|
-      sale|
-      out|
-      remove|
-      nikal|
-      nikala|
-      nikle|
-      gaye|
-      gaya
-    )\b/ix.test(n)
-    ||
-    /बिक|बेच|बिके|बिकगये|गये|गया|निकाल|निकला/.test(n);
-
-
-  /* FIND */
-
-  const product=
-    findProduct(raw);
-
-
-  if(!product){
-
-    $("status").textContent=
-      "Product not found. Add it first.";
-
+  if (!p) {
+    $("status").textContent =
+      "Product not found. Check density and thickness.";
     return;
   }
 
+  const current = Number(p.stock || 0);
 
-  /* STOCK OUT */
+  /* STOCK OUT / SALE */
 
-  if(isOut){
+  if (out) {
 
-    const available=
-      Number(product.stock||0);
-
-
-    if(available<qty){
-
-      $("status").textContent=
-        `Not enough stock. Available: ${available}`;
-
+    if (current < qty) {
+      $("status").textContent =
+        `Not enough stock. Available: ${current}`;
       return;
     }
 
+    p.stock = current - qty;
 
-    product.stock=
-      available-qty;
+    $("status").textContent =
+      `Stock Out: ${qty} ${p.unit || "pcs"} from ${p.product}.`;
 
+  } else {
 
-    $("status").textContent=
-      `Stock Out: ${qty} ${product.unit} from ${product.product}.`;
+    /* STOCK IN */
 
+    p.stock = current + qty;
 
-    save();
-
-    return;
+    $("status").textContent =
+      `Stock In: ${qty} ${p.unit || "pcs"} to ${p.product}.`;
   }
-
-
-  /* STOCK IN */
-
-  product.stock=
-    Number(product.stock||0)+qty;
-
-
-  $("status").textContent=
-    `Stock In: ${qty} ${product.unit} to ${product.product}.`;
-
 
   save();
 }
 
+/* -----------------------------
+   BUTTONS
+----------------------------- */
 
-/* =========================
-   PROCESS BUTTON
-========================= */
+$("processBtn").onclick = processCommand;
 
-$("processBtn").onclick=
-  processCommand;
+$("search").oninput = render;
 
-
-/* =========================
-   SEARCH
-========================= */
-
-$("search").oninput=
-  render;
-
-
-/* =========================
+/* -----------------------------
    VOICE
-   DO NOT CHANGE THIS
-========================= */
+----------------------------- */
 
-let recognition=null;
+let recognition = null;
 
+$("speakBtn").onclick = () => {
 
-$("speakBtn").onclick=()=>{
-
-  const SR=
+  const SR =
     window.SpeechRecognition ||
     window.webkitSpeechRecognition;
 
-
-  if(!SR){
-
-    $("status").textContent=
-      "Voice recognition is not supported in this browser. Type the command instead.";
-
+  if (!SR) {
+    $("status").textContent =
+      "Voice recognition is not supported. Type the command instead.";
     return;
   }
 
+  try {
 
-  try{
+    recognition = new SR();
 
-    recognition=
-      new SR();
+    recognition.lang = "hi-IN";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 3;
 
-
-    recognition.lang=
-      "hi-IN";
-
-
-    recognition.interimResults=
-      false;
-
-
-    recognition.maxAlternatives=
-      1;
-
-
-    recognition.onstart=()=>{
-
-      $("status").textContent=
+    recognition.onstart = () => {
+      $("status").textContent =
         "Listening… बोलिए।";
     };
 
+    recognition.onresult = e => {
 
-    recognition.onresult=e=>{
+      const text =
+        e.results?.[0]?.[0]?.transcript || "";
 
-      const text=
-        e.results[0][0].transcript;
+      $("command").value = text;
 
-
-      $("command").value=
-        text;
-
-
-      $("status").textContent=
-        "Voice captured. Tap Process.";
+      $("status").textContent =
+        text
+          ? "Voice captured. Tap Process."
+          : "Voice not captured. Try again.";
     };
 
-
-    recognition.onerror=e=>{
-
-      $("status").textContent=
-        "Voice error: "+e.error;
+    recognition.onerror = e => {
+      $("status").textContent =
+        "Voice error: " + e.error;
     };
 
-
-    recognition.onend=()=>{};
-
+    recognition.onend = () => {};
 
     recognition.start();
 
+  } catch (e) {
 
-  }catch(e){
-
-    $("status").textContent=
-      "Voice could not start. Please allow microphone permission and use the HTTPS app URL.";
+    $("status").textContent =
+      "Voice could not start. Allow microphone permission and use HTTPS/live app.";
   }
 };
 
-
-/* =========================
-   REMOVE EXISTING DUPLICATES
-   ON FIRST LOAD
-========================= */
-
-mergeDuplicates();
-
+/* Initial render */
 render();

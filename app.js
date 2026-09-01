@@ -11,9 +11,9 @@ try {
 
 const $ = id => document.getElementById(id);
 
-/* -----------------------------
+/* =========================
    NORMALIZE TEXT
------------------------------ */
+========================= */
 
 function norm(s) {
   return String(s ?? "")
@@ -24,30 +24,23 @@ function norm(s) {
     .replace(/गद्दों/g, " gadde ")
     .replace(/गद्दे/g, " gadde ")
     .replace(/गद्दा/g, " gadda ")
-    .replace(/बिकगये/g, " bik gaye ")
-    .replace(/बिकगए/g, " bik gaye ")
-    .replace(/बिके/g, " bike ")
-    .replace(/बिका/g, " bika ")
-    .replace(/बेचे/g, " beche ")
-    .replace(/बेचें/g, " bechein ")
-    .replace(/बेचा/g, " becha ")
-    .replace(/[^\p{L}\p{N}.\s-]/gu, " ")
+    .replace(/गद्दे/g, " gadde ")
     .replace(/\s+/g, " ")
     .trim();
 }
 
-/* -----------------------------
+/* =========================
    SAVE
------------------------------ */
+========================= */
 
 function save() {
   localStorage.setItem(KEY, JSON.stringify(inventory));
   render();
 }
 
-/* -----------------------------
+/* =========================
    ESCAPE HTML
------------------------------ */
+========================= */
 
 function esc(s) {
   return String(s ?? "").replace(/[&<>"']/g, m => ({
@@ -59,9 +52,9 @@ function esc(s) {
   }[m]));
 }
 
-/* -----------------------------
-   RENDER INVENTORY
------------------------------ */
+/* =========================
+   RENDER
+========================= */
 
 function render() {
 
@@ -103,9 +96,9 @@ function render() {
     "₹" + value.toLocaleString("en-IN");
 }
 
-/* -----------------------------
+/* =========================
    PRODUCT MATCHING
------------------------------ */
+========================= */
 
 function findProduct(text) {
 
@@ -122,14 +115,12 @@ function findProduct(text) {
 
     let score = 0;
 
-    /* Density */
-
+    // Density
     if (d && n.includes(d)) {
-      score += 5;
+      score += 10;
     }
 
-    /* Thickness */
-
+    // Thickness
     if (
       t &&
       (
@@ -138,43 +129,40 @@ function findProduct(text) {
           .includes(t.replace(/\s/g, ""))
       )
     ) {
+      score += 10;
+    }
+
+    // Product name
+    if (p && n.includes(p)) {
       score += 5;
     }
 
-    /* Product name */
-
-    if (p && n.includes(p)) {
-      score += 3;
-    }
-
-    /* Gadda variants */
-
+    // Gadda variants
     if (
       ["gadda", "gadde", "gadday"].includes(p) &&
       /gadda|gadde|gadday/.test(n)
     ) {
-      score += 3;
+      score += 5;
     }
 
-    /* Prefer product having stock */
-
+    // Prefer item having stock
     if (Number(x.stock || 0) > 0) {
-      score += 2;
+      score += 1;
     }
 
     if (score > bestScore) {
       bestScore = score;
       best = x;
     }
-
   });
 
-  return bestScore >= 10 ? best : null;
+  // Density + thickness required
+  return bestScore >= 20 ? best : null;
 }
 
-/* -----------------------------
-   NUMBER WORDS
------------------------------ */
+/* =========================
+   QUANTITY
+========================= */
 
 const words = {
 
@@ -203,42 +191,37 @@ const words = {
   nau: 9,
   das: 10,
 
-  "एक": 1,
-  "दो": 2,
-  "तीन": 3,
-  "चार": 4,
-  "पाँच": 5,
-  "पांच": 5,
-  "छह": 6,
-  "छः": 6,
-  "सात": 7,
-  "आठ": 8,
-  "नौ": 9,
-  "दस": 10
+  एक: 1,
+  दो: 2,
+  तीन: 3,
+  चार: 4,
+  पाँच: 5,
+  पांच: 5,
+  छह: 6,
+  छः: 6,
+  सात: 7,
+  आठ: 8,
+  नौ: 9,
+  दस: 10
 };
 
-/* -----------------------------
-   QUANTITY
-   IMPORTANT FIX
------------------------------ */
+function qtyOf(rawText) {
 
-function qtyOf(text) {
-
-  const n = norm(text);
+  const original = String(rawText || "").toLowerCase();
+  const n = norm(rawText);
 
   /*
-     RULE 1
-     Number immediately before product quantity.
+    IMPORTANT:
+    First look for quantity immediately associated
+    with gadda/gadde.
 
-     Examples:
-     2 gadde
-     3 gadda
-     2 pcs
-     5 pieces
+    Example:
+    "40 density 4 inch ke do gadde bik gaye"
+    => 2
   */
 
   let m = n.match(
-    /(\d+(?:\.\d+)?)\s*(?:gadde|gadda|gadday|pcs|piece|pieces|unit|units|नग)\b/i
+    /\b(\d+(?:\.\d+)?)\s*(?:gadde|gadda|gadday|pcs|piece|pieces|unit|units)\b/i
   );
 
   if (m) {
@@ -246,145 +229,73 @@ function qtyOf(text) {
   }
 
   /*
-     RULE 2
-     Hindi / English quantity word immediately
-     before gadda/gadde.
-     
-     Example:
-     do gadde
-     दो gadde
+    Hindi:
+    "दो गद्दे"
   */
 
-  const tokens = n.split(/\s+/);
+  m = original.match(
+    /\b(एक|दो|तीन|चार|पाँच|पांच|छह|छः|सात|आठ|नौ|दस)\s*(?:गद्दे|गद्दों|गद्दा)\b/
+  );
 
-  for (let i = 1; i < tokens.length; i++) {
-
-    const current = tokens[i];
-
-    if (
-      ["gadde", "gadda", "gadday", "pcs", "piece", "pieces"]
-        .includes(current)
-    ) {
-
-      const previous = tokens[i - 1];
-
-      if (words[previous] !== undefined) {
-        return words[previous];
-      }
-    }
+  if (m && words[m[1]] !== undefined) {
+    return words[m[1]];
   }
 
   /*
-     RULE 3
-     Hindi quantity word near sale command.
-
-     Example:
-     40 density 4 inch ke do gadde bik gaye
-  */
-
-  for (let i = tokens.length - 1; i >= 0; i--) {
-
-    if (words[tokens[i]] !== undefined) {
-
-      /*
-         Ignore numbers/words which are clearly
-         part of density/thickness.
-
-         We mainly want the quantity nearest
-         to the product.
-      */
-
-      const after = tokens.slice(i + 1, i + 4).join(" ");
-
-      if (
-        /gadde|gadda|gadday|pcs|piece|pieces|unit|units/
-          .test(after)
-      ) {
-        return words[tokens[i]];
-      }
-    }
-  }
-
-  /*
-     RULE 4
-     Numeric quantity immediately before
-     "bik/sell/sold".
-
-     Example:
-     2 bik gaye
-     2 sold
+    Roman Hindi:
+    "do gadde"
   */
 
   m = n.match(
-    /(\d+(?:\.\d+)?)\s+(?:bik|bike|bika|sell|sold|sale|beche|becha)\b/i
+    /\b(ek|do|teen|char|chaar|paanch|panch|chhe|che|saat|aath|nau|das)\s+(?:gadde|gadda|gadday)\b/
   );
 
-  if (m) {
-    return Number(m[1]);
+  if (m && words[m[1]] !== undefined) {
+    return words[m[1]];
   }
 
   /*
-     RULE 5
-     For numeric commands, collect all numbers
-     and REMOVE density + thickness numbers.
-
-     Example:
-     40 density 4 inch ke 2 gadde bik gaye
-
-     Numbers:
-     40 = density
-     4  = thickness
-     2  = quantity
-
-     Result = 2
+    If the command contains "do/दो" and sale words,
+    use 2 rather than the thickness number.
   */
 
-  const nums = [...n.matchAll(/\b\d+(?:\.\d+)?\b/g)]
-    .map(x => Number(x[0]));
+  if (
+    /\bdo\b/.test(n) ||
+    /दो/.test(original)
+  ) {
+    return 2;
+  }
+
+  /*
+    Last fallback:
+    Look for a standalone quantity only if it is
+    NOT density/thickness.
+
+    Example:
+    40 density 4 inch ...
+    DO NOT choose 4.
+  */
+
+  const nums = n.match(/\b\d+(?:\.\d+)?\b/g) || [];
 
   if (nums.length) {
 
-    let filtered = [...nums];
+    // If command has "density 40 ... inch 4",
+    // don't use density/thickness as quantity.
+    const filtered = nums.filter(num => {
 
-    /*
-       Remove density number
-    */
+      const index = n.indexOf(num);
 
-    const densityMatch = n.match(
-      /\b(\d+(?:\.\d+)?)\s*density\b/i
-    );
+      const before = n.slice(
+        Math.max(0, index - 15),
+        index
+      );
 
-    if (densityMatch) {
-      const densityValue = Number(densityMatch[1]);
+      if (/density\s*$/.test(before)) return false;
+      if (/inch\s*$/.test(before)) return false;
 
-      const index = filtered.indexOf(densityValue);
-
-      if (index !== -1) {
-        filtered.splice(index, 1);
-      }
-    }
-
-    /*
-       Remove thickness number
-    */
-
-    const thicknessMatch = n.match(
-      /\b(\d+(?:\.\d+)?)\s*inch\b/i
-    );
-
-    if (thicknessMatch) {
-      const thicknessValue = Number(thicknessMatch[1]);
-
-      const index = filtered.indexOf(thicknessValue);
-
-      if (index !== -1) {
-        filtered.splice(index, 1);
-      }
-    }
-
-    /*
-       Remaining last number is quantity.
-    */
+      return true;
+    });
 
     if (filtered.length) {
       return Number(filtered[filtered.length - 1]);
@@ -394,39 +305,31 @@ function qtyOf(text) {
   return 1;
 }
 
-/* -----------------------------
-   STOCK OUT / SALE DETECTION
------------------------------ */
+/* =========================
+   STOCK OUT DETECTION
+========================= */
 
-function isOut(text) {
+function isOut(rawText) {
 
-  const n = norm(text);
+  const original = String(rawText || "").toLowerCase();
+  const n = norm(rawText);
 
-  return (
-    /\bbik\b/.test(n) ||
-    /\bbike\b/.test(n) ||
-    /\bbika\b/.test(n) ||
-    /\bbik\s+gaye\b/.test(n) ||
-    /\bbik\s+gaya\b/.test(n) ||
-    /\bsell\b/.test(n) ||
-    /\bsold\b/.test(n) ||
-    /\bsale\b/.test(n) ||
-    /\bout\b/.test(n) ||
-    /\bremove\b/.test(n) ||
-    /\bnikal\b/.test(n) ||
-    /\bnikala\b/.test(n) ||
-    /\bnikle\b/.test(n) ||
-    /\bbeche\b/.test(n) ||
-    /\bbecha\b/.test(n) ||
-    /\bबेच\b/.test(n) ||
-    /\bबिक\b/.test(n) ||
-    /\bनिकाल\b/.test(n)
-  );
+  /*
+    SALE / STOCK OUT WORDS
+  */
+
+  const romanOut =
+    /\b(bik|bike|bicke|biki|bikgaye|bikgaya|sell|sold|sale|out|remove|nikal|nikala|nikle|gaye|gaya)\b/i;
+
+  const hindiOut =
+    /(बिक|बिका|बिके|बिकेगा|बिकगये|बिकगया|बेच|बेचा|बेचे|बेचदिए|बेचदिया|गये|गया|निकाल|निकला|निकले)/;
+
+  return romanOut.test(n) || hindiOut.test(original);
 }
 
-/* -----------------------------
+/* =========================
    PROCESS COMMAND
------------------------------ */
+========================= */
 
 function processCommand() {
 
@@ -440,11 +343,16 @@ function processCommand() {
     return;
   }
 
-  const n = norm(raw);
+  const qty = qtyOf(raw);
+  const out = isOut(raw);
 
-  /*
-     Find product FIRST
-  */
+  if (!qty || qty <= 0) {
+
+    $("status").textContent =
+      "Please enter a valid quantity.";
+
+    return;
+  }
 
   const p = findProduct(raw);
 
@@ -456,31 +364,11 @@ function processCommand() {
     return;
   }
 
-  /*
-     Then determine quantity
-  */
-
-  const qty = qtyOf(n);
-
-  /*
-     Then determine IN / OUT
-  */
-
-  const out = isOut(n);
-
-  if (!qty || qty <= 0) {
-
-    $("status").textContent =
-      "Please enter a valid quantity.";
-
-    return;
-  }
-
   const current = Number(p.stock || 0);
 
-  /* -----------------------------
+  /* =====================
      STOCK OUT / SALE
-  ----------------------------- */
+  ===================== */
 
   if (out) {
 
@@ -499,9 +387,9 @@ function processCommand() {
 
   }
 
-  /* -----------------------------
+  /* =====================
      STOCK IN
-  ----------------------------- */
+  ===================== */
 
   else {
 
@@ -514,17 +402,17 @@ function processCommand() {
   save();
 }
 
-/* -----------------------------
+/* =========================
    BUTTONS
------------------------------ */
+========================= */
 
 $("processBtn").onclick = processCommand;
 
 $("search").oninput = render;
 
-/* -----------------------------
-   VOICE RECOGNITION
------------------------------ */
+/* =========================
+   VOICE
+========================= */
 
 let recognition = null;
 
@@ -586,8 +474,8 @@ $("speakBtn").onclick = () => {
   }
 };
 
-/* -----------------------------
+/* =========================
    INITIAL RENDER
------------------------------ */
+========================= */
 
 render();

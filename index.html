@@ -5,461 +5,1418 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#fff4c7">
 <title>City Group Stock Manager</title>
+
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#f5f6fb;color:#18213a;font-family:Arial,sans-serif}
-.app{max-width:760px;margin:auto;padding:16px 14px 35px}
-header{text-align:center;padding:10px 0 18px}
-h1{margin:0;font-size:28px}.sub{font-size:19px;margin-top:3px}header p{color:#777}
-.card{background:#fff;border-radius:18px;padding:17px;margin:12px 0;box-shadow:0 3px 15px #0001}
-h2{font-size:20px;margin:0 0 14px}
-textarea,input{width:100%;padding:13px;border:1px solid #d9dce5;border-radius:12px;font-size:16px}
-textarea{height:82px;resize:vertical}
-.buttons,.stats,.actions,.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
-button{border:0;border-radius:12px;padding:13px;font-size:16px;font-weight:600}
-.speak{background:#f9c83d}.process{background:#18213a;color:white}
-.status{margin-top:10px;background:#f1f2f5;border-radius:10px;padding:10px;min-height:40px;color:#555}
-.stat{padding:17px;text-align:center;border-radius:15px;background:#eeeaff}
-.stat:nth-child(2){background:#fff1bd}
-.stat b{display:block;font-size:26px;margin-top:5px}
-.action{background:#f7f8fb;border:1px solid #e4e6ec;text-align:left}
-.action small{display:block;color:#777;margin-top:4px;font-weight:400}
-.add{background:#16a34a;color:#fff;width:100%;margin-top:10px}
-.cancel{background:#eee;width:100%;margin-top:7px}
-.hidden{display:none}.search{margin-bottom:10px}
-.wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px}
-th,td{text-align:left;padding:10px 7px;border-bottom:1px solid #eee;white-space:nowrap}
-th{background:#f4f4f5}.row button{padding:7px 8px;font-size:12px;margin-right:3px}
-.empty{text-align:center;color:#777;padding:20px}
-@media(max-width:480px){.app{padding:10px}h1{font-size:25px}}
+
+body{
+  margin:0;
+  background:#f5f6fb;
+  color:#18213a;
+  font-family:Arial,sans-serif
+}
+
+.app{
+  max-width:760px;
+  margin:auto;
+  padding:16px 14px 35px
+}
+
+header{
+  text-align:center;
+  padding:10px 0 18px
+}
+
+h1{
+  margin:0;
+  font-size:28px
+}
+
+.sub{
+  font-size:19px;
+  margin-top:3px
+}
+
+header p{
+  color:#777
+}
+
+.card{
+  background:#fff;
+  border-radius:18px;
+  padding:17px;
+  margin:12px 0;
+  box-shadow:0 3px 15px #0001
+}
+
+h2{
+  font-size:20px;
+  margin:0 0 14px
+}
+
+textarea,input{
+  width:100%;
+  padding:13px;
+  border:1px solid #d9dce5;
+  border-radius:12px;
+  font-size:16px
+}
+
+textarea{
+  height:82px;
+  resize:vertical
+}
+
+.buttons,.stats,.actions,.formgrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:10px
+}
+
+button{
+  border:0;
+  border-radius:12px;
+  padding:13px;
+  font-size:16px;
+  font-weight:600
+}
+
+.speak{
+  background:#f9c83d
+}
+
+.process{
+  background:#18213a;
+  color:white
+}
+
+.status{
+  margin-top:10px;
+  background:#f1f2f5;
+  border-radius:10px;
+  padding:10px;
+  min-height:40px;
+  color:#555
+}
+
+.stat{
+  padding:17px;
+  text-align:center;
+  border-radius:15px;
+  background:#eeeaff
+}
+
+.stat:nth-child(2){
+  background:#fff1bd
+}
+
+.stat b{
+  display:block;
+  font-size:26px;
+  margin-top:5px
+}
+
+.action{
+  background:#f7f8fb;
+  border:1px solid #e4e6ec;
+  text-align:left
+}
+
+.action small{
+  display:block;
+  color:#777;
+  margin-top:4px;
+  font-weight:400
+}
+
+.add{
+  background:#16a34a;
+  color:#fff;
+  width:100%;
+  margin-top:10px
+}
+
+.cancel{
+  background:#eee;
+  width:100%;
+  margin-top:7px
+}
+
+.hidden{
+  display:none
+}
+
+.search{
+  margin-bottom:10px
+}
+
+.wrap{
+  overflow-x:auto
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:14px
+}
+
+th,td{
+  text-align:left;
+  padding:10px 7px;
+  border-bottom:1px solid #eee;
+  white-space:nowrap
+}
+
+th{
+  background:#f4f4f5
+}
+
+.row button{
+  padding:7px 8px;
+  font-size:12px;
+  margin-right:3px
+}
+
+.empty{
+  text-align:center;
+  color:#777;
+  padding:20px
+}
+
+@media(max-width:480px){
+  .app{
+    padding:10px
+  }
+
+  h1{
+    font-size:25px
+  }
+}
 </style>
 </head>
+
 <body>
+
 <div class="app">
-<header><div style="font-size:30px">🏢</div><h1>CITY GROUP</h1><div class="sub">Stock Manager</div><p>Speak Your Stock Command</p></header>
+
+<header>
+  <div style="font-size:30px">🏢</div>
+  <h1>CITY GROUP</h1>
+  <div class="sub">Stock Manager</div>
+  <p>Speak Your Stock Command</p>
+</header>
 
 <section class="card">
+
 <h2>🎙️ Voice Command</h2>
-<div style="color:#777;font-size:13px;margin-bottom:8px">Example: “40 density ke 4 inch ke 2 gadde bik gaye”</div>
-<textarea id="cmd" placeholder="Speak or type your command..."></textarea>
+
+<div style="color:#777;font-size:13px;margin-bottom:8px">
+Example: “40 density ke 4 inch ke 2 gadde bik gaye”
+</div>
+
+<textarea
+  id="cmd"
+  placeholder="Speak or type your command..."
+></textarea>
+
 <div class="buttons">
-<button class="speak" id="speak">🎙️ Speak</button>
-<button class="process" id="process">⚡ Process</button>
+
+<button class="speak" id="speak">
+🎙️ Speak
+</button>
+
+<button class="process" id="process">
+⚡ Process
+</button>
+
 </div>
-<div class="status" id="status">Ready.</div>
+
+<div class="status" id="status">
+Ready.
+</div>
+
 </section>
 
+
 <section class="card">
+
 <h2>📊 Overview</h2>
+
 <div class="stats">
-<div class="stat">Total Stock Units<b id="total">0</b></div>
-<div class="stat">Inventory Value<b id="value">₹0</b></div>
+
+<div class="stat">
+Total Stock Units
+<b id="total">0</b>
 </div>
+
+<div class="stat">
+Inventory Value
+<b id="value">₹0</b>
+</div>
+
+</div>
+
 </section>
 
+
 <section class="card">
+
 <h2>⚡ Quick Actions</h2>
+
 <div class="actions">
-<button class="action" onclick="openForm('in')">➕ Stock In<small>Add stock</small></button>
-<button class="action" onclick="openForm('out')">➖ Stock Out<small>Sell / remove</small></button>
-<button class="action" onclick="openForm('add')">📦 Inventory<small>Add product</small></button>
-<button class="action" onclick="document.getElementById('search').focus()">💰 Rate List<small>Search rates</small></button>
+
+<button class="action" onclick="openForm('in')">
+➕ Stock In
+<small>Add stock</small>
+</button>
+
+<button class="action" onclick="openForm('out')">
+➖ Stock Out
+<small>Sell / remove</small>
+</button>
+
+<button class="action" onclick="openForm('add')">
+📦 Inventory
+<small>Add product</small>
+</button>
+
+<button
+  class="action"
+  onclick="document.getElementById('search').focus()"
+>
+💰 Rate List
+<small>Search rates</small>
+</button>
+
 </div>
+
 </section>
+
 
 <section class="card hidden" id="form">
-<h2 id="formTitle">➕ Add Product</h2>
+
+<h2 id="formTitle">
+➕ Add Product
+</h2>
+
 <div class="formgrid">
-<input id="product" placeholder="Product (e.g. Gadda)">
-<input id="density" placeholder="Density (e.g. 40)">
-<input id="thickness" placeholder="Thickness (e.g. 4 inch)">
-<input id="unit" placeholder="Unit (e.g. pcs)" value="pcs">
-<input id="stock" type="number" min="0" placeholder="Stock">
-<input id="rate" type="number" min="0" placeholder="Rate">
+
+<input
+  id="product"
+  placeholder="Product (e.g. Gadda)"
+>
+
+<input
+  id="density"
+  placeholder="Density (e.g. 40)"
+>
+
+<input
+  id="thickness"
+  placeholder="Thickness (e.g. 4 inch)"
+>
+
+<input
+  id="unit"
+  placeholder="Unit (e.g. pcs)"
+  value="pcs"
+>
+
+<input
+  id="stock"
+  type="number"
+  min="0"
+  placeholder="Stock"
+>
+
+<input
+  id="rate"
+  type="number"
+  min="0"
+  placeholder="Rate"
+>
+
 </div>
-<button class="add" onclick="saveProduct()">💾 Save</button>
-<button class="cancel" onclick="closeForm()">Cancel</button>
+
+<button
+  class="add"
+  onclick="saveProduct()"
+>
+💾 Save
+</button>
+
+<button
+  class="cancel"
+  onclick="closeForm()"
+>
+Cancel
+</button>
+
 </section>
+
 
 <section class="card">
+
 <h2>📦 Current Inventory</h2>
-<input class="search" id="search" placeholder="🔎 Search product, density, thickness..." oninput="render()">
+
+<input
+  class="search"
+  id="search"
+  placeholder="🔎 Search product, density, thickness..."
+  oninput="render()"
+>
+
 <div class="wrap">
+
 <table>
-<thead><tr><th>Product</th><th>Density</th><th>Thickness</th><th>Unit</th><th>Stock</th><th>Rate</th><th></th></tr></thead>
+
+<thead>
+
+<tr>
+<th>Product</th>
+<th>Density</th>
+<th>Thickness</th>
+<th>Unit</th>
+<th>Stock</th>
+<th>Rate</th>
+<th></th>
+</tr>
+
+</thead>
+
 <tbody id="body"></tbody>
+
 </table>
-</div>
-</section>
+
 </div>
 
+</section>
+
+</div>
+
+
 <script>
-/* IMPORTANT: keep the ORIGINAL storage key so old stock remains visible */
+
+/* STORAGE */
+
 const KEY = "city_group_stock_manager_v1";
 const NEW_KEY = "city_group_inventory_v1";
 
 let data = [];
-try {
+
+try{
+
   const oldRaw = localStorage.getItem(KEY);
   const newRaw = localStorage.getItem(NEW_KEY);
-  if (oldRaw) data = JSON.parse(oldRaw);
-  else if (newRaw) data = JSON.parse(newRaw);
-  if (!Array.isArray(data)) data = [];
-} catch(e) { data = []; }
+
+  if(oldRaw){
+    data = JSON.parse(oldRaw);
+  }
+  else if(newRaw){
+    data = JSON.parse(newRaw);
+  }
+
+  if(!Array.isArray(data)){
+    data = [];
+  }
+
+}catch(e){
+
+  data = [];
+
+}
+
+
+/* HELPER */
 
 const $ = id => document.getElementById(id);
 
+
+/*
+  IMPORTANT NORMALIZATION FIX
+
+  This makes these equivalent:
+
+  4 inch
+  4 inches
+  4 इंच
+
+  And these product names equivalent:
+
+  Gadda
+  Gadde
+  Gadday
+  गद्दा
+  गद्दे
+*/
+
 function norm(s){
+
   return String(s ?? "")
     .toLowerCase()
-    .replace(/[\u200B-\u200D\uFEFF]/g,"")
+
+    .replace(
+      /[\u200B-\u200D\uFEFF]/g,
+      ""
+    )
+
+    /* Hindi/English inch normalization */
     .replace(/inches?/g,"inch")
-    .replace(/[^\p{L}\p{N}.\s-]/gu," ")
+    .replace(/इंच/g,"inch")
+
+    /* Gadda variants */
+    .replace(/गद्दे/g,"gadda")
+    .replace(/गद्दा/g,"gadda")
+    .replace(/\bgadde\b/g,"gadda")
+    .replace(/\bgadday\b/g,"gadda")
+
+    /* density word */
+    .replace(/डेंसिटी/g,"density")
+    .replace(/density/gi,"density")
+
+    /* remove punctuation */
+    .replace(
+      /[^\p{L}\p{N}.\s-]/gu,
+      " "
+    )
+
     .replace(/\s+/g," ")
     .trim();
 }
 
+
+/* NUMBER WORDS */
+
 function numberWords(s){
+
   const w={
-    one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,
-    ek:1,do:2,teen:3,char:4,chaar:4,paanch:5,panch:5,chhe:6,che:6,saat:7,aath:8,nau:9,das:10,
-    "एक":1,"दो":2,"तीन":3,"चार":4,"पाँच":5,"पांच":5,"छह":6,"छः":6,"सात":7,"आठ":8,"नौ":9,"दस":10
+
+    one:1,
+    two:2,
+    three:3,
+    four:4,
+    five:5,
+    six:6,
+    seven:7,
+    eight:8,
+    nine:9,
+    ten:10,
+
+    ek:1,
+    do:2,
+    teen:3,
+    char:4,
+    chaar:4,
+    paanch:5,
+    panch:5,
+    chhe:6,
+    che:6,
+    saat:7,
+    aath:8,
+    nau:9,
+    das:10,
+
+    "एक":1,
+    "दो":2,
+    "तीन":3,
+    "चार":4,
+    "पाँच":5,
+    "पांच":5,
+    "छह":6,
+    "छः":6,
+    "सात":7,
+    "आठ":8,
+    "नौ":9,
+    "दस":10
+
   };
+
   return w[s];
+
 }
+
+
+/* MONEY */
 
 function money(n){
-  return "₹"+Number(n||0).toLocaleString("en-IN",{maximumFractionDigits:2});
+
+  return "₹" +
+    Number(n || 0).toLocaleString(
+      "en-IN",
+      {
+        maximumFractionDigits:2
+      }
+    );
+
 }
+
+
+/* HTML ESCAPE */
 
 function esc(s){
-  return String(s??"").replace(/[&<>"']/g,c=>({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-  }[c]));
+
+  return String(s ?? "")
+    .replace(
+      /[&<>"']/g,
+      c => ({
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        '"':"&quot;",
+        "'":"&#039;"
+      }[c])
+    );
+
 }
+
+
+/* SAVE */
 
 function save(){
+
   try{
-    localStorage.setItem(KEY,JSON.stringify(data));
-    /* also keep the newer key synchronized when possible */
-    localStorage.setItem(NEW_KEY,JSON.stringify(data));
+
+    localStorage.setItem(
+      KEY,
+      JSON.stringify(data)
+    );
+
+    localStorage.setItem(
+      NEW_KEY,
+      JSON.stringify(data)
+    );
+
     render();
+
     return true;
+
   }catch(e){
-    alert("Data save nahi ho pa raha. Browser storage blocked hai.");
+
+    alert(
+      "Data save nahi ho pa raha. Browser storage blocked hai."
+    );
+
     return false;
+
   }
+
 }
+
+
+/* RENDER INVENTORY */
 
 function render(){
-  const q=norm($("search").value);
-  const list=data.filter(p=>!q||[
-    p.product,p.density,p.thickness,p.unit,p.stock,p.rate
-  ].some(x=>norm(x).includes(q)));
 
-  $("body").innerHTML=list.length ? list.map(p=>{
-    const i=data.indexOf(p);
-    return `<tr>
-      <td>${esc(p.product)}</td>
-      <td>${esc(p.density)}</td>
-      <td>${esc(p.thickness)}</td>
-      <td>${esc(p.unit||"pcs")}</td>
-      <td><b>${Number(p.stock||0)}</b></td>
-      <td>${money(p.rate)}</td>
-      <td class="row">
-        <button onclick="edit(${i})">Edit</button>
-        <button onclick="del(${i})">Delete</button>
-      </td>
-    </tr>`;
-  }).join("") : '<tr><td colspan="7" class="empty">No products added.</td></tr>';
+  const q = norm($("search").value);
 
-  $("total").textContent=data.reduce((a,p)=>a+Number(p.stock||0),0).toLocaleString("en-IN");
-  $("value").textContent=money(data.reduce((a,p)=>a+Number(p.stock||0)*Number(p.rate||0),0));
+  const list = data.filter(p =>
+    !q ||
+    [
+      p.product,
+      p.density,
+      p.thickness,
+      p.unit,
+      p.stock,
+      p.rate
+    ].some(x =>
+      norm(x).includes(q)
+    )
+  );
+
+
+  $("body").innerHTML =
+    list.length
+
+    ?
+
+    list.map(p => {
+
+      const i = data.indexOf(p);
+
+      return `<tr>
+
+        <td>${esc(p.product)}</td>
+
+        <td>${esc(p.density)}</td>
+
+        <td>${esc(p.thickness)}</td>
+
+        <td>${esc(p.unit || "pcs")}</td>
+
+        <td>
+          <b>${Number(p.stock || 0)}</b>
+        </td>
+
+        <td>${money(p.rate)}</td>
+
+        <td class="row">
+
+          <button onclick="edit(${i})">
+            Edit
+          </button>
+
+          <button onclick="del(${i})">
+            Delete
+          </button>
+
+        </td>
+
+      </tr>`;
+
+    }).join("")
+
+    :
+
+    '<tr><td colspan="7" class="empty">No products added.</td></tr>';
+
+
+  $("total").textContent =
+    data.reduce(
+      (a,p) =>
+        a + Number(p.stock || 0),
+      0
+    ).toLocaleString("en-IN");
+
+
+  $("value").textContent =
+    money(
+      data.reduce(
+        (a,p) =>
+          a +
+          Number(p.stock || 0) *
+          Number(p.rate || 0),
+        0
+      )
+    );
+
 }
 
-let mode="add";
+
+/* FORM */
+
+let mode = "add";
+
 
 function openForm(m,p=null){
-  mode=m;
-  $("form").classList.remove("hidden");
-  $("formTitle").textContent=m==="in"?"➕ Stock In":m==="out"?"➖ Stock Out":"➕ Add Product";
 
-  ["product","density","thickness","stock","rate"].forEach(x=>$(x).value="");
-  $("unit").value="pcs";
+  mode = m;
+
+  $("form").classList.remove("hidden");
+
+  $("formTitle").textContent =
+    m === "in"
+      ? "➕ Stock In"
+      : m === "out"
+        ? "➖ Stock Out"
+        : "➕ Add Product";
+
+
+  [
+    "product",
+    "density",
+    "thickness",
+    "stock",
+    "rate"
+  ].forEach(
+    x => $(x).value = ""
+  );
+
+
+  $("unit").value = "pcs";
+
   delete $("form").dataset.id;
 
+
   if(p){
-    $("product").value=p.product||"";
-    $("density").value=p.density||"";
-    $("thickness").value=p.thickness||"";
-    $("unit").value=p.unit||"pcs";
-    $("stock").value=Number(p.stock||0);
-    $("rate").value=Number(p.rate||0);
-    $("form").dataset.id=p.id;
-    $("formTitle").textContent="✏️ Edit Product";
-    mode="edit";
-  }
-  $("form").scrollIntoView({behavior:"smooth"});
-}
 
-function closeForm(){ $("form").classList.add("hidden"); }
+    $("product").value =
+      p.product || "";
 
-function saveProduct(){
-  const p=$("product").value.trim();
-  const d=$("density").value.trim();
-  const t=$("thickness").value.trim();
-  const u=$("unit").value.trim()||"pcs";
-  const s=Number($("stock").value);
-  const r=Number($("rate").value);
+    $("density").value =
+      p.density || "";
 
-  if(!p||!d||!t||!Number.isFinite(s)||s<0||!Number.isFinite(r)||r<0){
-    alert("Please fill all product fields correctly.");
-    return;
-  }
+    $("thickness").value =
+      p.thickness || "";
 
-  if(mode==="edit"){
-    const id=$("form").dataset.id;
-    const x=data.find(v=>v.id===id);
-    if(x) Object.assign(x,{product:p,density:d,thickness:t,unit:u,stock:s,rate:r});
-  }else if(mode==="in"||mode==="out"){
-    const x=data.find(v=>
-      norm(v.product)===norm(p) &&
-      norm(v.density)===norm(d) &&
-      norm(v.thickness)===norm(t)
-    );
-    if(!x){
-      alert("Product not found. Add it first.");
-      return;
-    }
-    if(mode==="out" && s>Number(x.stock||0)){
-      alert("Stock Out cannot exceed current stock.");
-      return;
-    }
-    x.stock=Number(x.stock||0)+(mode==="in"?s:-s);
-    if(r>0) x.rate=r;
-  }else{
-    data.push({
-      id:"id_"+Date.now()+"_"+Math.random().toString(36).slice(2),
-      product:p,density:d,thickness:t,unit:u,stock:s,rate:r
-    });
+    $("unit").value =
+      p.unit || "pcs";
+
+    $("stock").value =
+      Number(p.stock || 0);
+
+    $("rate").value =
+      Number(p.rate || 0);
+
+    $("form").dataset.id =
+      p.id;
+
+    $("formTitle").textContent =
+      "✏️ Edit Product";
+
+    mode = "edit";
+
   }
 
-  if(save()){
-    closeForm();
-    $("status").textContent="Saved successfully.";
-  }
-}
 
-function edit(i){
-  if(data[i]) openForm("edit",data[i]);
-}
-
-function del(i){
-  if(confirm("Delete this product?")){
-    data.splice(i,1);
-    save();
-    $("status").textContent="Product deleted.";
-  }
-}
-
-/* ---------- VOICE COMMAND ---------- */
-
-function getQuantity(text){
-  const n=norm(text);
-
-  /* Prefer quantity immediately before product/unit words */
-  let m=n.match(/(\d+(?:\.\d+)?)\s*(?:gadde|gadda|gadday|pcs|piece|pieces|unit|units|नग|गद्दे|गद्दा)\b/i);
-  if(m) return Number(m[1]);
-
-  const words=n.split(/\s+/);
-  for(let i=words.length-1;i>=0;i--){
-    const v=numberWords(words[i]);
-    if(v!==undefined) return v;
-  }
-
-  const nums=n.match(/\b\d+(?:\.\d+)?\b/g);
-  return nums ? Number(nums[nums.length-1]) : 1;
-}
-
-function isOut(text){
-  const n=norm(text);
-  return /(?:\bbik\b|\bbike\b|\bbicke\b|\bbiki\b|\bbikgaye\b|\bbikgaya\b|\bsell\b|\bsold\b|\bsale\b|\bout\b|\bremove\b|\bnikal\b|\bnikala\b|\bnikle\b|\bgaye\b|\bgaya\b|बिक|बेच|बिके|बिकगये|गये|गया|निकाल|निकला)/i.test(n);
-}
-
-function findProduct(text){
-  const n=norm(text);
-  let best=null,score=0;
-
-  data.forEach(x=>{
-    const d=norm(x.density);
-    const t=norm(x.thickness);
-    const p=norm(x.product);
-    let s=0;
-
-    /* Density match */
-    if(d && (n.includes(d+" density") || n.includes(d))) s+=5;
-
-    /* Thickness match: "4 inch", "4inch", "4 inches" */
-    const compactN=n.replace(/\s/g,"");
-    const compactT=t.replace(/\s/g,"");
-    if(t && (n.includes(t) || compactN.includes(compactT))) s+=5;
-
-    /* Product name */
-    if(p && n.includes(p)) s+=3;
-
-    /* Gadda/Gadde variants */
-    if((p==="gadda"||p==="gadde"||p==="gadday") &&
-       /gadda|gadde|gadday|गद्दा|गद्दे/i.test(n)) s+=3;
-
-    if(s>score){score=s;best=x;}
+  $("form").scrollIntoView({
+    behavior:"smooth"
   });
 
-  return score>=10 ? best : null;
 }
+
+
+function closeForm(){
+
+  $("form").classList.add("hidden");
+
+}
+
+
+/* SAVE PRODUCT */
+
+function saveProduct(){
+
+  const p =
+    $("product").value.trim();
+
+  const d =
+    $("density").value.trim();
+
+  const t =
+    $("thickness").value.trim();
+
+  const u =
+    $("unit").value.trim() || "pcs";
+
+  const s =
+    Number($("stock").value);
+
+  const r =
+    Number($("rate").value);
+
+
+  if(
+    !p ||
+    !d ||
+    !t ||
+    !Number.isFinite(s) ||
+    s < 0 ||
+    !Number.isFinite(r) ||
+    r < 0
+  ){
+
+    alert(
+      "Please fill all product fields correctly."
+    );
+
+    return;
+
+  }
+
+
+  if(mode === "edit"){
+
+    const id =
+      $("form").dataset.id;
+
+    const x =
+      data.find(v => v.id === id);
+
+    if(x){
+
+      Object.assign(
+        x,
+        {
+          product:p,
+          density:d,
+          thickness:t,
+          unit:u,
+          stock:s,
+          rate:r
+        }
+      );
+
+    }
+
+
+  }
+
+  else if(
+    mode === "in" ||
+    mode === "out"
+  ){
+
+    const x =
+      data.find(v =>
+        norm(v.product) === norm(p) &&
+        norm(v.density) === norm(d) &&
+        norm(v.thickness) === norm(t)
+      );
+
+
+    if(!x){
+
+      alert(
+        "Product not found. Add it first."
+      );
+
+      return;
+
+    }
+
+
+    if(
+      mode === "out" &&
+      s > Number(x.stock || 0)
+    ){
+
+      alert(
+        "Stock Out cannot exceed current stock."
+      );
+
+      return;
+
+    }
+
+
+    x.stock =
+      Number(x.stock || 0) +
+      (
+        mode === "in"
+          ? s
+          : -s
+      );
+
+
+    if(r > 0){
+
+      x.rate = r;
+
+    }
+
+  }
+
+  else{
+
+    data.push({
+
+      id:
+        "id_" +
+        Date.now() +
+        "_" +
+        Math.random()
+          .toString(36)
+          .slice(2),
+
+      product:p,
+      density:d,
+      thickness:t,
+      unit:u,
+      stock:s,
+      rate:r
+
+    });
+
+  }
+
+
+  if(save()){
+
+    closeForm();
+
+    $("status").textContent =
+      "Saved successfully.";
+
+  }
+
+}
+
+
+/* EDIT */
+
+function edit(i){
+
+  if(data[i]){
+
+    openForm(
+      "edit",
+      data[i]
+    );
+
+  }
+
+}
+
+
+/* DELETE */
+
+function del(i){
+
+  if(
+    confirm(
+      "Delete this product?"
+    )
+  ){
+
+    data.splice(i,1);
+
+    save();
+
+    $("status").textContent =
+      "Product deleted.";
+
+  }
+
+}
+
+
+/* =========================
+   VOICE COMMAND
+   ========================= */
+
+
+/* QUANTITY */
+
+function getQuantity(text){
+
+  const n = norm(text);
+
+
+  /*
+    Example:
+
+    2 gadde
+    2 gadda
+    2 pieces
+    2 pcs
+  */
+
+  let m =
+    n.match(
+      /(\d+(?:\.\d+)?)\s*(?:gadde|gadda|gadday|pcs|piece|pieces|unit|units|नग|गद्दे|गद्दा)\b/i
+    );
+
+
+  if(m){
+
+    return Number(m[1]);
+
+  }
+
+
+  const words =
+    n.split(/\s+/);
+
+
+  for(
+    let i = words.length - 1;
+    i >= 0;
+    i--
+  ){
+
+    const v =
+      numberWords(words[i]);
+
+    if(v !== undefined){
+
+      return v;
+
+    }
+
+  }
+
+
+  const nums =
+    n.match(
+      /\b\d+(?:\.\d+)?\b/g
+    );
+
+
+  return nums
+    ? Number(nums[nums.length - 1])
+    : 1;
+
+}
+
+
+/* STOCK OUT DETECTION */
+
+function isOut(text){
+
+  const n = norm(text);
+
+
+  return /(?:\bbik\b|\bbike\b|\bbicke\b|\bbiki\b|\bbikgaye\b|\bbikgaya\b|\bsell\b|\bsold\b|\bsale\b|\bout\b|\bremove\b|\bnikal\b|\bnikala\b|\bnikle\b|\bgaye\b|\bgaya\b|बिक|बेच|बिके|बिकगये|गये|गया|निकाल|निकला)/i
+    .test(n);
+
+}
+
+
+/* FIND PRODUCT */
+
+function findProduct(text){
+
+  const n =
+    norm(text);
+
+  let best = null;
+  let score = 0;
+
+
+  data.forEach(x => {
+
+    const d =
+      norm(x.density);
+
+    const t =
+      norm(x.thickness);
+
+    const p =
+      norm(x.product);
+
+    let s = 0;
+
+
+    /*
+      DENSITY
+
+      Example:
+      40 density
+      40 डेंसिटी
+      40
+    */
+
+    if(
+      d &&
+      (
+        n.includes(d + " density") ||
+        n.includes(d)
+      )
+    ){
+
+      s += 5;
+
+    }
+
+
+    /*
+      THICKNESS
+
+      Example:
+      4 inch
+      4inch
+      4 inches
+      4 इंच
+    */
+
+    const compactN =
+      n.replace(/\s/g,"");
+
+    const compactT =
+      t.replace(/\s/g,"");
+
+
+    if(
+      t &&
+      (
+        n.includes(t) ||
+        compactN.includes(compactT)
+      )
+    ){
+
+      s += 5;
+
+    }
+
+
+    /*
+      PRODUCT NAME
+    */
+
+    if(
+      p &&
+      n.includes(p)
+    ){
+
+      s += 3;
+
+    }
+
+
+    /*
+      GADDA / GADDE VARIANTS
+    */
+
+    if(
+      (
+        p === "gadda" ||
+        p === "gadde" ||
+        p === "gadday"
+      )
+      &&
+      /gadda|gadde|gadday/i.test(n)
+    ){
+
+      s += 3;
+
+    }
+
+
+    if(s > score){
+
+      score = s;
+      best = x;
+
+    }
+
+  });
+
+
+  /*
+    Minimum score = 10
+
+    Density  = 5
+    Thickness = 5
+    Product = +3
+  */
+
+  return score >= 10
+    ? best
+    : null;
+
+}
+
+
+/* PROCESS COMMAND */
 
 function processCommand(){
-  const raw=$("cmd").value.trim();
+
+  const raw =
+    $("cmd").value.trim();
+
+
   if(!raw){
-    $("status").textContent="Please speak or type a command.";
+
+    $("status").textContent =
+      "Please speak or type a command.";
+
     return;
+
   }
 
-  const qty=getQuantity(raw);
-  const out=isOut(raw);
-  const p=findProduct(raw);
 
-  if(!qty||qty<=0){
-    $("status").textContent="Please enter a valid quantity.";
+  const qty =
+    getQuantity(raw);
+
+  const out =
+    isOut(raw);
+
+  const p =
+    findProduct(raw);
+
+
+  if(
+    !qty ||
+    qty <= 0
+  ){
+
+    $("status").textContent =
+      "Please enter a valid quantity.";
+
     return;
+
   }
+
 
   if(!p){
-    $("status").textContent="Product not found. Example: 40 density ke 4 inch ke 2 gadde bik gaye";
+
+    $("status").textContent =
+      "Product not found. Example: 40 density ke 4 inch ke 2 gadde bik gaye";
+
     return;
+
   }
 
-  const current=Number(p.stock||0);
+
+  const current =
+    Number(p.stock || 0);
+
 
   if(out){
-    if(current<qty){
-      $("status").textContent="Not enough stock. Available: "+current+" "+(p.unit||"pcs");
+
+    if(current < qty){
+
+      $("status").textContent =
+        "Not enough stock. Available: " +
+        current +
+        " " +
+        (p.unit || "pcs");
+
       return;
+
     }
-    p.stock=current-qty;
-    $("status").textContent=`Stock Out: ${qty} ${p.unit||"pcs"} from ${p.product}.`;
-  }else{
-    p.stock=current+qty;
-    $("status").textContent=`Stock In: ${qty} ${p.unit||"pcs"} to ${p.product}.`;
+
+
+    p.stock =
+      current - qty;
+
+
+    $("status").textContent =
+      `Stock Out: ${qty} ${
+        p.unit || "pcs"
+      } from ${p.product}.`;
+
   }
+
+  else{
+
+    p.stock =
+      current + qty;
+
+
+    $("status").textContent =
+      `Stock In: ${qty} ${
+        p.unit || "pcs"
+      } to ${p.product}.`;
+
+  }
+
 
   save();
+
 }
 
-$("process").onclick=processCommand;
 
-let activeRecognition = null;
+/* PROCESS BUTTON */
 
-async function requestMicPermission(){
-  // Ask Chrome for microphone access before starting SpeechRecognition.
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    throw new Error("Microphone access is unavailable on this local page.");
-  }
-  const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-  stream.getTracks().forEach(track => track.stop());
-}
+$("process").onclick =
+  processCommand;
 
-$("speak").onclick = async ()=>{
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+/* SPEAK BUTTON */
+
+$("speak").onclick = () => {
+
+  const SR =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
+
 
   if(!SR){
+
     $("status").textContent =
-      "Voice recognition is not supported by this Chrome version.";
+      "Voice is not supported in this browser. Please open the Live app in Chrome.";
+
     return;
+
   }
 
-  if(activeRecognition){
-    try{ activeRecognition.stop(); }catch(e){}
-    activeRecognition = null;
-  }
-
-  $("status").textContent = "🎙️ Opening microphone...";
 
   try{
-    await requestMicPermission();
-  }catch(e){
-    const name = e?.name || "";
-    if(name === "NotAllowedError" || name === "PermissionDeniedError"){
-      $("status").textContent =
-        "🎙️ Chrome has blocked the microphone for this local page. " +
-        "Allow Microphone for Chrome, reload this page, and tap Speak again.";
-    }else if(name === "NotFoundError"){
-      $("status").textContent =
-        "🎙️ No microphone was found. Check the phone microphone.";
-    }else{
-      $("status").textContent =
-        "🎙️ Microphone could not be opened: " +
-        (e?.message || name || "unknown error");
-    }
-    return;
-  }
 
-  try{
-    const r = new SR();
-    activeRecognition = r;
+    const r =
+      new SR();
 
-    r.lang = "hi-IN";
-    r.continuous = false;
-    r.interimResults = false;
-    r.maxAlternatives = 3;
 
-    r.onstart = ()=>{
-      $("status").textContent = "🎙️ Listening... बोलिए।";
+    r.lang =
+      "hi-IN";
+
+    r.continuous =
+      false;
+
+    r.interimResults =
+      false;
+
+    r.maxAlternatives =
+      3;
+
+
+    r.onstart = () => {
+
+      $("status").textContent =
+        "🎙️ Listening... बोलिए।";
+
     };
 
-    r.onresult = e=>{
-      const text = e.results?.[0]?.[0]?.transcript || "";
-      $("cmd").value = text;
-      $("status").textContent = text
-        ? "✅ Voice captured. Press Process."
-        : "Voice not captured. Please try again.";
+
+    r.onresult = e => {
+
+      const text =
+        e.results?.[0]?.[0]?.transcript ||
+        "";
+
+
+      $("cmd").value =
+        text;
+
+
+      $("status").textContent =
+        text
+          ? "Voice captured. Press Process."
+          : "Voice not captured. Please try again.";
+
     };
 
-    r.onnomatch = ()=>{
+
+    r.onnomatch = () => {
+
       $("status").textContent =
         "Voice not understood. Please speak clearly and try again.";
+
     };
 
-    r.onerror = e=>{
+
+    r.onerror = e => {
+
       const msg = {
+
         "not-allowed":
-          "Microphone permission denied by Chrome. Allow microphone access and try again.",
+          "Microphone permission denied. Allow microphone for Chrome and try again.",
+
         "service-not-allowed":
-          "Speech service is unavailable in this browser.",
+          "Speech service is unavailable. Open the Live app in Chrome and try again.",
+
         "audio-capture":
-          "Microphone is busy or unavailable. Check the phone microphone.",
+          "Microphone is not available. Check phone microphone permission.",
+
         "no-speech":
           "No speech detected. Tap Speak and say the command.",
+
         "network":
-          "Chrome speech recognition needs an internet connection."
-      }[e.error] || ("Voice error: " + e.error);
+          "Voice service needs an internet connection."
 
-      $("status").textContent = msg;
+      }[e.error] ||
+        ("Voice error: " + e.error);
+
+
+      $("status").textContent =
+        msg;
+
     };
 
-    r.onend = ()=>{
-      activeRecognition = null;
-    };
+
+    r.onend = () => {};
+
 
     r.start();
 
+
   }catch(e){
-    activeRecognition = null;
+
     $("status").textContent =
-      "Voice could not start: " + (e?.message || "unknown error");
+      "Voice could not start. Allow microphone permission and use the Live app in Chrome.";
+
   }
+
 };
 
+
+/* INITIAL RENDER */
+
 render();
+
 </script>
+
 </body>
 </html>

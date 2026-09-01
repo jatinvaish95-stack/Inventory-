@@ -105,7 +105,29 @@ try {
   if (oldRaw) data = JSON.parse(oldRaw);
   else if (newRaw) data = JSON.parse(newRaw);
   if (!Array.isArray(data)) data = [];
+
+  /* FIX: remove accidental duplicate product rows.
+     Same Product + Density + Thickness + Unit = ONE item.
+     Keep the first existing row so its stock is not doubled. */
+  const seen = new Set();
+  data = data.filter(x => {
+    const key = [
+      norm(x.product),
+      norm(x.density),
+      norm(x.thickness),
+      norm(x.unit || "pcs")
+    ].join("|");
+
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 } catch(e) { data = []; }
+
+try {
+  localStorage.setItem(KEY, JSON.stringify(data));
+  localStorage.setItem(NEW_KEY, JSON.stringify(data));
+} catch(e) {}
 
 const $ = id => document.getElementById(id);
 
@@ -238,10 +260,23 @@ function saveProduct(){
     x.stock=Number(x.stock||0)+(mode==="in"?s:-s);
     if(r>0) x.rate=r;
   }else{
-    data.push({
-      id:"id_"+Date.now()+"_"+Math.random().toString(36).slice(2),
-      product:p,density:d,thickness:t,unit:u,stock:s,rate:r
-    });
+    /* FIX: never create a second row for the same product specification. */
+    const existing = data.find(v =>
+      norm(v.product)===norm(p) &&
+      norm(v.density)===norm(d) &&
+      norm(v.thickness)===norm(t) &&
+      norm(v.unit||"pcs")===norm(u)
+    );
+
+    if(existing){
+      existing.stock = Number(existing.stock||0) + s;
+      if(r > 0) existing.rate = r;
+    }else{
+      data.push({
+        id:"id_"+Date.now()+"_"+Math.random().toString(36).slice(2),
+        product:p,density:d,thickness:t,unit:u,stock:s,rate:r
+      });
+    }
   }
 
   if(save()){

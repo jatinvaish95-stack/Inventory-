@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f7f8fc">
+  <title>CITY GROUP — Stock Manager</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <header class="hero">
+      <div class="building">🏢</div>
+      <h1>CITY GROUP</h1>
+      <h2>Stock Manager</h2>
+      <p>Speak Your Stock Command</p>
+    </header>
+
+    <section class="card">
+      <h3>🎙️ Voice Command</h3>
+      <div class="example">Example: “40 density ke 4 inch ke 2 gadde bik gaye”</div>
+      <textarea id="command" placeholder="Speak or type your command..."></textarea>
+      <div class="actions">
+        <button id="speakBtn" class="btn speak">🎙️ Speak</button>
+        <button id="processBtn" class="btn process">⚡ Process</button>
+      </div>
+      <div id="status" class="status">Ready.</div>
+    </section>
+
+    <section class="card">
+      <h3>📊 Overview</h3>
+      <div class="overview">
+        <div class="metric lavender">
+          <span>Total Stock<br>Units</span>
+          <strong id="totalUnits">0</strong>
+        </div>
+        <div class="metric yellow">
+          <span>Inventory Value</span>
+          <strong id="inventoryValue">₹0</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>⚡ Quick Actions</h3>
+      <div class="quick-grid">
+        <button class="quick" id="stockInBtn"><b>➕ Stock In</b><small>Add stock</small></button>
+        <button class="quick" id="stockOutBtn"><b>➖ Stock Out</b><small>Sell / remove</small></button>
+        <button class="quick" id="inventoryBtn"><b>📦 Inventory</b><small>Add product</small></button>
+        <button class="quick" id="rateBtn"><b>💰 Rate List</b><small>Search rates</small></button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>📦 Current Inventory</h3>
+      <input id="search" class="search" placeholder="🔎 Search product, density, thickness...">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Product</th><th>Density</th><th>Thickness</th><th>Unit</th><th>Stock</th><th>Rate</th></tr>
+          </thead>
+          <tbody id="inventoryBody"></tbody>
+        </table>
+      </div>
+      <div id="empty" class="empty">No products added.</div>
+    </section>
+  </main>
+
+  <dialog id="productDialog">
+    <form method="dialog" id="productForm" class="dialog">
+      <h3>📦 Add Product</h3>
+      <input id="product" required placeholder="Product">
+      <div class="two"><input id="density" required placeholder="Density"><input id="thickness" required placeholder="Thickness (4 inch)"></div>
+      <div class="two"><input id="unit" value="pcs" placeholder="Unit (pcs)"><input id="stock" type="number" min="0" value="0" placeholder="Stock"></div>
+      <input id="rate" type="number" min="0" value="0" placeholder="Rate">
+      <div class="dialog-actions">
+        <button type="button" id="cancelProduct">Cancel</button>
+        <button class="save" type="submit">➕ Save Product</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>

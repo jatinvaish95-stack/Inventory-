@@ -65,10 +65,10 @@ function edit(id){let p=data.find(x=>String(x.id)===String(id));if(p)openForm("e
 function del(id){if(confirm("Delete this product?")){data=data.filter(x=>String(x.id)!==String(id));save()}}
 document.addEventListener("click",e=>{let b=e.target.closest("[data-action]");if(!b)return;let id=b.dataset.id;b.dataset.action==="edit"?edit(id):del(id)})
 const words={ek:1,do:2,teen:3,char:4,chaar:4,paanch:5,panch:5,chhe:6,che:6,saat:7,aath:8,nau:9,das:10,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,"एक":1,"दो":2,"तीन":3,"चार":4,"पाँच":5,"पांच":5,"छह":6,"छः":6,"सात":7,"आठ":8,"नौ":9,"दस":10};
-function qty(text){let raw=String(text||""),n=norm(raw),m=n.match(/(\d+(?:\.\d+)?)\s*(?:gadde|gadda|pcs|pieces|piece|नग|पीस)/i);if(m)return Number(m[1]);
-m=raw.match(/(एक|दो|तीन|चार|पाँच|पांच|छह|छः|सात|आठ|नौ|दस)\s*(?:गद्दे|गद्दों|गद्दा|पीस|नग)/);if(m)return words[m[1]];
-m=n.match(/(ek|do|teen|char|chaar|paanch|panch|chhe|che|saat|aath|nau|das|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:gadde|gadda)/i);if(m)return words[m[1].toLowerCase()];
-let d=n.match(/(\d+(?:\.\d+)?)\s*density/i),t=n.match(/(\d+(?:\.\d+)?)\s*inch/i),nums=[...n.matchAll(/\d+(?:\.\d+)?/g)].map(x=>Number(x[0]));let rem=nums.filter(x=>x!==Number(d?.[1])&&x!==Number(t?.[1]));return rem.length?rem[rem.length-1]:1}
+function qty(text){let raw=String(text||""),n=norm(raw),m=n.match(/(\d+(?:\.\d+)?)\s*(?:gadde|gadda|pcs|pieces|piece|नग|पीस)\b/i);if(m)return Number(m[1]);
+m=raw.match(/(?:^|\s)(एक|दो|तीन|चार|पाँच|पांच|छह|छः|सात|आठ|नौ|दस)\s*(?:गद्दे|गद्दों|गद्दा|पीस|नग)\b/);if(m)return words[m[1]];
+m=n.match(/\b(ek|do|teen|char|chaar|paanch|panch|chhe|che|saat|aath|nau|das|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:gadde|gadda)\b/i);if(m)return words[m[1].toLowerCase()];
+let d=n.match(/(\d+(?:\.\d+)?)\s*density/i),t=n.match(/(\d+(?:\.\d+)?)\s*inch/i),nums=[...n.matchAll(/\b\d+(?:\.\d+)?\b/g)].map(x=>Number(x[0]));let rem=nums.filter(x=>x!==Number(d?.[1])&&x!==Number(t?.[1]));return rem.length?rem[rem.length-1]:1}
 function out(text){let raw=String(text||"").toLowerCase(),n=norm(raw);return /बिक\s*गए|बिक\s*गये|बिके|बिका|बेच\s*दिए|बेच\s*दिये/.test(raw)||/\bbik\b|\bbike\b|\bbikgaye\b|\bbikgaya\b|\bsell\b|\bsold\b|\bsale\b|\bout\b|\bremove\b|\bnikal\b|\bbech\b/i.test(n)}
 function incoming(text){let raw=String(text||"").toLowerCase(),n=norm(raw);return /आया|आए|जमा|खरीदा|खरीदे|मिला|मिले/.test(raw)||/\badd\b|\bin\b|\baaya\b|\baaye\b|\bmila\b|\bpurchase\b|\bkharida\b/i.test(n)}
 function processCommand(){let raw=$("cmd").value.trim();if(!raw){$("status").textContent="Please speak or type a command.";return}let n=norm(raw),d=n.match(/(\d+(?:\.\d+)?)\s*density/i),t=n.match(/(\d+(?:\.\d+)?)\s*inch/i);if(!d||!t){$("status").textContent="Command samajh nahi aaya.";return}

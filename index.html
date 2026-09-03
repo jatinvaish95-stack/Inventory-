@@ -84,6 +84,8 @@ function norm(s){
     .replace(/आ\s*गए/g," aa gaye ")
     .replace(/आ\s*गये/g," aa gaye ")
     .replace(/आ\s*गया/g," aa gaya ")
+    .replace(/आ\s*गयी/g," aa gayi ")
+    .replace(/आ\s*गये/g," aa gye ")
     .replace(/[^\p{L}\p{N}.\s-]/gu," ")
     .replace(/\s+/g," ").trim();
 }
@@ -242,14 +244,22 @@ function detectIntent(text){
   // Stock In.
   if(
     /(?:आ\s*गए|आ\s*गये|आ\s*गया|आ\s*गई|आया|आए|आई|माल\s*आ|स्टॉक\s*आ|मिला|मिले|जमा|खरीदा|खरीदे|प्राप्त)/i.test(raw) ||
-    /\b(aa gaye|aa gaya|aa gayi|aaya|aaye|aayi|mila|mile|jama|kharida|kharide|received|receive|purchase|purchased)\b/i.test(n)
+    /\b(aa\s*(?:gaye|gye|gaya|gya|gayi|gai)|aagaye|aagye|aaya|aaye|aayi|mila|mile|jama|kharida|kharide|received|receive|purchase|purchased)\b/i.test(n)
   ) return "in";
 
   return "unknown";
 }
 
+let consumedCommand = "";
+
 function processCommand(){
   const raw=$("cmd").value.trim();
+
+  // Do not execute the exact same command twice.
+  if(consumedCommand && raw === consumedCommand){
+    $("status").textContent="⚠️ यह command पहले ही process हो चुकी है। नई command लिखें।";
+    return;
+  }
 
   // EMPTY Process = NO ACTION.
   if(!raw){
@@ -299,7 +309,7 @@ function processCommand(){
     p.stock=cur-q;
     if(save()){
       $("status").textContent=`✅ Stock Out: ${q} ${p.unit||"pcs"}. New stock: ${p.stock}`;
-      // A processed command must not be processed again by another Process tap.
+      consumedCommand=raw;
       $("cmd").value="";
     }
     return;
@@ -309,13 +319,16 @@ function processCommand(){
     p.stock=cur+q;
     if(save()){
       $("status").textContent=`✅ Stock In: ${q} ${p.unit||"pcs"}. New stock: ${p.stock}`;
-      // A processed command must not be processed again by another Process tap.
+      consumedCommand=raw;
       $("cmd").value="";
     }
     return;
   }
 }
 
+$("cmd").addEventListener("input",()=>{ 
+  if($("cmd").value.trim() !== consumedCommand) consumedCommand="";
+});
 $("process").onclick=processCommand;
 
 $("speak").onclick=()=>{

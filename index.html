@@ -43,39 +43,136 @@ button{border:0;border-radius:12px;padding:13px;font-size:16px;font-weight:600;c
 <script>
 
 const KEY="city_group_inventory_v1";
-let data=[];
-try{data=JSON.parse(localStorage.getItem(KEY)||"[]");if(!Array.isArray(data))data=[]}catch(e){data=[]}
+const FALLBACK_KEY="city_group_stock_manager_v1";
+
+function validInventory(v){
+  return Array.isArray(v) && v.some(x=>x && typeof x==="object" &&
+    ("density" in x) && ("thickness" in x) && ("stock" in x));
+}
+
+function loadData(){
+  const keys=[KEY,FALLBACK_KEY];
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k && /^city_group/i.test(k) && !keys.includes(k)) keys.push(k);
+    }
+  }catch(e){}
+  for(const k of keys){
+    try{
+      const raw=localStorage.getItem(k);
+      if(!raw) continue;
+      const parsed=JSON.parse(raw);
+      if(validInventory(parsed)) return parsed;
+    }catch(e){}
+  }
+  return [];
+}
+
+let data=loadData();
 const $=id=>document.getElementById(id);
 
-function norm(s){return String(s??"").toLowerCase()
- .replace(/डेंसिटी/g," density ").replace(/इंच/g," inch ")
- .replace(/गद्दों/g," gadde ").replace(/गद्दे/g," gadde ").replace(/गद्दा/g," gadda ")
- .replace(/[^\p{L}\p{N}.\s-]/gu," ").replace(/\s+/g," ").trim();}
-function money(n){return "₹"+Number(n||0).toLocaleString("en-IN",{maximumFractionDigits:2});}
-function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
-function save(){localStorage.setItem(KEY,JSON.stringify(data));render();}
+function norm(s){
+  return String(s??"").toLowerCase()
+    .replace(/डेंसिटी/g," density ")
+    .replace(/इंच/g," inch ")
+    .replace(/गद्दों/g," gadde ")
+    .replace(/गद्दे/g," gadde ")
+    .replace(/गद्दा/g," gadda ")
+    .replace(/बिक\s*गए/g," bik gaye ")
+    .replace(/बिक\s*गये/g," bik gaye ")
+    .replace(/आ\s*गए/g," aa gaye ")
+    .replace(/आ\s*गये/g," aa gaye ")
+    .replace(/आ\s*गया/g," aa gaya ")
+    .replace(/[^\p{L}\p{N}.\s-]/gu," ")
+    .replace(/\s+/g," ").trim();
+}
+
+function money(n){
+  return "₹"+Number(n||0).toLocaleString("en-IN",{maximumFractionDigits:2});
+}
+
+function esc(s){
+  return String(s??"").replace(/[&<>"']/g,c=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[c]));
+}
+
+function save(){
+  try{
+    localStorage.setItem(KEY,JSON.stringify(data));
+    render();
+    return true;
+  }catch(e){
+    $("status").textContent="Data save nahi ho pa raha.";
+    return false;
+  }
+}
 
 function render(){
- const q=norm($("search").value);
- const list=data.filter(p=>!q||[p.product,p.density,p.thickness,p.unit,p.stock,p.rate].some(x=>norm(x).includes(q)));
- $("body").innerHTML=list.length?list.map(p=>`<tr><td>${esc(p.product)}</td><td>${esc(p.density)}</td><td>${esc(p.thickness)}</td><td>${esc(p.unit||"pcs")}</td><td><b>${Number(p.stock||0)}</b></td><td>${money(p.rate)}</td><td>—</td></tr>`).join(""):`<tr><td colspan="7" class="empty">No products added.</td></tr>`;
- $("total").textContent=data.reduce((a,p)=>a+Number(p.stock||0),0).toLocaleString("en-IN");
- $("value").textContent=money(data.reduce((a,p)=>a+Number(p.stock||0)*Number(p.rate||0),0));
+  const q=norm($("search").value);
+  const list=data.filter(p=>!q||[
+    p.product,p.density,p.thickness,p.unit,p.stock,p.rate
+  ].some(x=>norm(x).includes(q)));
+
+  $("body").innerHTML=list.length
+    ? list.map(p=>`<tr>
+        <td>${esc(p.product)}</td>
+        <td>${esc(p.density)}</td>
+        <td>${esc(p.thickness)}</td>
+        <td>${esc(p.unit||"pcs")}</td>
+        <td><b>${Number(p.stock||0)}</b></td>
+        <td>${money(p.rate)}</td>
+        <td>—</td>
+      </tr>`).join("")
+    : `<tr><td colspan="7" class="empty">No products added.</td></tr>`;
+
+  $("total").textContent=data.reduce((a,p)=>a+Number(p.stock||0),0).toLocaleString("en-IN");
+  $("value").textContent=money(data.reduce((a,p)=>a+Number(p.stock||0)*Number(p.rate||0),0));
 }
 
-function openForm(mode){$("form").classList.remove("hidden");$("formTitle").textContent=mode==="in"?"➕ Stock In":mode==="out"?"➖ Stock Out":"➕ Add Product";$("form").dataset.mode=mode;["product","density","thickness","stock","rate"].forEach(x=>$(x).value="");$("unit").value="pcs";}
-function closeForm(){$("form").classList.add("hidden");}
-function saveProduct(){
- const product=$("product").value.trim(),density=$("density").value.trim(),thickness=$("thickness").value.trim(),unit=$("unit").value.trim()||"pcs",stock=Number($("stock").value||0),rate=Number($("rate").value||0),mode=$("form").dataset.mode||"add";
- if(!product||!density||!thickness||stock<0||rate<0){alert("Please fill all product fields correctly.");return;}
- if(mode==="in"||mode==="out"){
-   const p=data.find(x=>norm(x.density)===norm(density)&&norm(x.thickness)===norm(thickness));
-   if(!p){alert("Product not found. Add it first.");return;}
-   if(mode==="out"&&stock>Number(p.stock||0)){alert("Stock Out cannot exceed current stock.");return;}
-   p.stock=mode==="in"?Number(p.stock||0)+stock:Number(p.stock||0)-stock;
- }else data.push({product,density,thickness,unit,stock,rate});
- save();closeForm();$("status").textContent="✅ Saved successfully.";render();
+function openForm(mode){
+  $("form").classList.remove("hidden");
+  $("formTitle").textContent=mode==="in"?"➕ Stock In":mode==="out"?"➖ Stock Out":"➕ Add Product";
+  $("form").dataset.mode=mode;
+  ["product","density","thickness","stock","rate"].forEach(x=>$(x).value="");
+  $("unit").value="pcs";
 }
+function closeForm(){$("form").classList.add("hidden");}
+
+function saveProduct(){
+  const product=$("product").value.trim();
+  const density=$("density").value.trim();
+  const thickness=$("thickness").value.trim();
+  const unit=$("unit").value.trim()||"pcs";
+  const stock=Number($("stock").value||0);
+  const rate=Number($("rate").value||0);
+  const mode=$("form").dataset.mode||"add";
+
+  if(!product||!density||!thickness||stock<0||rate<0){
+    alert("Please fill all product fields correctly.");
+    return;
+  }
+
+  if(mode==="in"||mode==="out"){
+    const p=data.find(x=>norm(x.density)===norm(density)&&norm(x.thickness)===norm(thickness));
+    if(!p){alert("Product not found. Add it first.");return;}
+    if(mode==="out"&&stock>Number(p.stock||0)){
+      alert("Stock Out cannot exceed current stock.");return;
+    }
+    p.stock=mode==="in"
+      ? Number(p.stock||0)+stock
+      : Number(p.stock||0)-stock;
+  }else{
+    data.push({product,density,thickness,unit,stock,rate});
+  }
+
+  if(save()){
+    closeForm();
+    $("status").textContent="✅ Saved successfully.";
+  }
+}
+
 $("inventoryBtn").onclick=()=>openForm("add");
 $("stockInBtn").onclick=()=>openForm("in");
 $("stockOutBtn").onclick=()=>openForm("out");
@@ -84,138 +181,158 @@ $("saveProductBtn").onclick=saveProduct;
 $("cancelBtn").onclick=closeForm;
 $("search").oninput=render;
 
-const words={ek:1,do:2,teen:3,char:4,chaar:4,paanch:5,panch:5,chhe:6,che:6,saat:7,aath:8,nau:9,das:10,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,"एक":1,"दो":2,"तीन":3,"चार":4,"पाँच":5,"पांच":5,"छह":6,"छः":6,"सात":7,"आठ":8,"नौ":9,"दस":10};
+const words={
+  ek:1,do:2,teen:3,char:4,chaar:4,paanch:5,panch:5,chhe:6,che:6,saat:7,aath:8,nau:9,das:10,
+  one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,
+  "एक":1,"दो":2,"तीन":3,"चार":4,"पाँच":5,"पांच":5,"छह":6,"छः":6,"सात":7,"आठ":8,"नौ":9,"दस":10
+};
 
-function getQty(text){
- const raw=String(text||""),n=norm(raw);
- let m=raw.match(/(?:^|\s)(एक|दो|तीन|चार|पाँच|पांच|छह|छः|सात|आठ|नौ|दस)\s*(?:गद्दे|गद्दों|गद्दा|पीस|नग)(?=\s|$)/);
- if(m)return words[m[1]];
- m=n.match(/\b(ek|do|teen|char|chaar|paanch|panch|chhe|che|saat|aath|nau|das|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:gadde|gadda)(?=\s|$)/i);
- if(m)return words[m[1].toLowerCase()];
- m=n.match(/\b(\d+(?:\.\d+)?)\s*(?:gadde|gadda|pcs|pieces|piece)\b/i);
- if(m)return Number(m[1]);
- const d=n.match(/(\d+(?:\.\d+)?)\s*density/i),t=n.match(/(\d+(?:\.\d+)?)\s*inch/i);
- const nums=[...n.matchAll(/\b\d+(?:\.\d+)?\b/g)].map(x=>Number(x[0]));
- const rem=nums.filter(x=>x!==Number(d?.[1])&&x!==Number(t?.[1]));
- return rem.length?rem[rem.length-1]:1;
+function explicitQty(text){
+  const raw=String(text||"");
+  const n=norm(raw);
+  let m=raw.match(/(?:^|\s)(एक|दो|तीन|चार|पाँच|पांच|छह|छः|सात|आठ|नौ|दस)\s*(?:गद्दे|गद्दों|गद्दा|पीस|नग)(?=\s|$)/);
+  if(m)return words[m[1]];
+
+  m=n.match(/\b(ek|do|teen|char|chaar|paanch|panch|chhe|che|saat|aath|nau|das|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:gadde|gadda|pcs|pieces|piece|units?)\b/i);
+  if(m)return words[m[1].toLowerCase()];
+
+  m=n.match(/\b(\d+(?:\.\d+)?)\s*(?:gadde|gadda|pcs|pieces|piece|units?|नग|पीस)\b/i);
+  if(m)return Number(m[1]);
+
+  const d=Number((n.match(/(\d+(?:\.\d+)?)\s*density/i)||[])[1]);
+  const t=Number((n.match(/(\d+(?:\.\d+)?)\s*inch/i)||[])[1]);
+  const nums=[...n.matchAll(/\b\d+(?:\.\d+)?\b/g)].map(x=>Number(x[0]));
+  const rem=nums.filter(x=>x!==d&&x!==t);
+  if(rem.length)return rem[rem.length-1];
+
+  return null;
 }
 
 function findProduct(text){
- const n=norm(text);let best=null,score=0;
- data.forEach(p=>{
-  const d=norm(p.density),t=norm(p.thickness),name=norm(p.product);let s=0;
-  if(d&&n.includes(d))s+=5;if(t&&n.includes(t))s+=5;
-  if(name&&n.includes(name))s+=3;
-  if((name==="gadda"||name==="gadde")&&/गद्द|gadda|gadde/i.test(text))s+=3;
-  if(s>score){score=s;best=p;}
- });
- return score>=10?best:null;
+  const n=norm(text);
+  const exact=data.find(p=>{
+    const d=norm(p.density),t=norm(p.thickness);
+    return d&&t&&n.includes(d)&&n.includes(t);
+  });
+  if(exact)return exact;
+
+  const matches=data.filter(p=>{
+    const name=norm(p.product);
+    return name&&n.includes(name);
+  });
+  return matches.length===1?matches[0]:null;
 }
 
-function intent(text){
- const raw=String(text||"").toLowerCase(),n=norm(raw);
- // Questions/queries must NEVER change stock.
- if(/(?:क्या|क्या है|कितना|कितने|कितनी|बताओ|बता|रेट|भाव|दाम|कीमत|मूल्य|price|rate|cost|how much|what is|show|दिखाओ|list)/i.test(raw) ||
-    /\b(rate|price|cost|how much|what is|show|list)\b/i.test(n)) return "query";
- if(/(?:बिक|बेच|बिका|बिके|बिक गया|बिक गए|बेचा|बिकवा|निकाल|गया|गये|गए|sold|sell|sale|out|remove|nikal|bech)/i.test(raw) ||
-    /\b(bik|bike|bika|bech|becha|sold|sell|sale|out|remove|nikal)\b/i.test(n)) return "out";
- if(/(?:आया|आए|आई|आया है|आए हैं|आ गई|आ गए|आ गया|माल आया|माल आ गया|मिला|मिले|जमा|खरीदा|खरीदे|स्टॉक आया|स्टॉक आ गया)/i.test(raw) ||
-    /\b(add|added|stock in|received|receive|purchase|purchased|aaya|aaye|aayi|aa gaya|aa gaye|aa gayi|mila|mile|kharida|kharide)\b/i.test(n)) return "in";
- return "unknown";
+function detectIntent(text){
+  const raw=String(text||"");
+  const n=norm(raw);
+
+  // Questions/information requests NEVER modify stock.
+  if(
+    /(?:क्या|कितना|कितने|कितनी|बताओ|बता|रेट|भाव|दाम|कीमत|मूल्य|price|rate|cost|how much|what is|show|दिखाओ|list)/i.test(raw) ||
+    /\b(rate|price|cost|how much|what is|show|list)\b/i.test(n)
+  ) return "query";
+
+  // Stock Out.
+  if(
+    /(?:बिक|बेच|बिका|बिके|बेचा|निकाल|हटा|sold|sell|sale|remove)/i.test(raw) ||
+    /\b(bik|bike|bika|bicke|bech|becha|sold|sell|sale|out|remove|nikal)\b/i.test(n)
+  ) return "out";
+
+  // Stock In.
+  if(
+    /(?:आ\s*गए|आ\s*गये|आ\s*गया|आ\s*गई|आया|आए|आई|माल\s*आ|स्टॉक\s*आ|मिला|मिले|जमा|खरीदा|खरीदे|प्राप्त)/i.test(raw) ||
+    /\b(aa gaye|aa gaya|aa gayi|aaya|aaye|aayi|mila|mile|jama|kharida|kharide|received|receive|purchase|purchased)\b/i.test(n)
+  ) return "in";
+
+  return "unknown";
 }
 
 function processCommand(){
- const raw=$("cmd").value.trim();
+  const raw=$("cmd").value.trim();
 
- // NEVER treat an empty Process press as Add.
- if(!raw){
-   $("status").textContent="⚠️ Command खाली है — stock में कोई बदलाव नहीं किया गया।";
-   return;
- }
+  // EMPTY Process = NO ACTION.
+  if(!raw){
+    $("status").textContent="⚠️ Command खाली है — stock में कोई बदलाव नहीं किया गया।";
+    return;
+  }
 
- const type=intent(raw);
- const p=findProduct(raw);
+  const type=detectIntent(raw);
 
- // Questions never change stock.
- if(type==="query"){
-   if(!p){$("status").textContent="Product not found. Please mention density and thickness.";return;}
-   $("status").textContent=`💰 Rate: ${money(p.rate)} per ${p.unit||"pcs"} | Stock: ${Number(p.stock||0)}`;
-   return;
- }
+  // Questions = NO STOCK CHANGE.
+  if(type==="query"){
+    const p=findProduct(raw);
+    if(!p){
+      $("status").textContent="Product not found. Density + thickness mention kijiye.";
+      return;
+    }
+    $("status").textContent=`💰 Rate: ${money(p.rate)} per ${p.unit||"pcs"} | Current stock: ${Number(p.stock||0)}`;
+    return;
+  }
 
- // Unknown commands never change stock.
- if(type==="unknown"){
-   $("status").textContent="⚠️ Command clear नहीं है — stock में कोई बदलाव नहीं किया गया।";
-   return;
- }
+  // Unclear command = NO STOCK CHANGE.
+  if(type==="unknown"){
+    $("status").textContent="⚠️ Action clear नहीं है — 'aa gaye' या 'bik gaye' बोलिए। Stock unchanged.";
+    return;
+  }
 
- if(!p){
-   $("status").textContent="⚠️ Product not found — stock में कोई बदलाव नहीं किया गया।";
-   return;
- }
+  // Quantity is mandatory. Never default to 1.
+  const q=explicitQty(raw);
+  if(q===null||!Number.isFinite(q)||q<=0){
+    $("status").textContent="⚠️ Quantity साफ़ लिखें — stock में कोई बदलाव नहीं किया गया।";
+    return;
+  }
 
- // Quantity MUST be explicitly present. Density/thickness are NOT quantity.
- const rawN=norm(raw);
- let q=null;
- let m=raw.match(/(?:^|\s)(एक|दो|तीन|चार|पाँच|पांच|छह|छः|सात|आठ|नौ|दस)\s*(?:गद्दे|गद्दों|गद्दा|पीस|नग)(?=\s|$)/);
- if(m) q=words[m[1]];
+  const p=findProduct(raw);
+  if(!p){
+    $("status").textContent="⚠️ Product not found — stock unchanged.";
+    return;
+  }
 
- if(q===null){
-   m=rawN.match(/\b(ek|do|teen|char|chaar|paanch|panch|chhe|che|saat|aath|nau|das|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:gadde|gadda|pcs|pieces|piece)(?=\s|$)/i);
-   if(m) q=words[m[1].toLowerCase()];
- }
+  const cur=Number(p.stock||0);
 
- if(q===null){
-   m=rawN.match(/\b(\d+(?:\.\d+)?)\s*(?:gadde|gadda|pcs|pieces|piece|नग|पीस)(?=\s|$)/i);
-   if(m) q=Number(m[1]);
- }
+  if(type==="out"){
+    if(cur<q){
+      $("status").textContent=`Not enough stock. Available: ${cur} ${p.unit||"pcs"}`;
+      return;
+    }
+    p.stock=cur-q;
+    if(save()) $("status").textContent=`✅ Stock Out: ${q} ${p.unit||"pcs"}. New stock: ${p.stock}`;
+    return;
+  }
 
- // Explicit numeric quantity before the action, e.g. "2 gadde aa gaye".
- if(q===null){
-   m=rawN.match(/\b(\d+(?:\.\d+)?)\b(?=\s+(?:aa|aaye|aaya|aagaye|bik|bike|sold|sell|gaye|gaya)\b)/i);
-   if(m){
-     const candidate=Number(m[1]);
-     const d=Number((rawN.match(/(\d+(?:\.\d+)?)\s*density/i)||[])[1]);
-     const t=Number((rawN.match(/(\d+(?:\.\d+)?)\s*inch/i)||[])[1]);
-     if(candidate!==d && candidate!==t) q=candidate;
-   }
- }
-
- if(q===null || !Number.isFinite(q) || q<=0){
-   $("status").textContent="⚠️ Quantity साफ़ लिखें, जैसे: “2 गद्दे आ गए” — stock में कोई बदलाव नहीं किया गया।";
-   return;
- }
-
- const cur=Number(p.stock||0);
-
- if(type==="out"){
-   if(cur<q){
-     $("status").textContent=`Not enough stock. Available: ${cur} ${p.unit||"pcs"}`;
-     return;
-   }
-   p.stock=cur-q;
-   save();
-   $("status").textContent=`✅ Stock Out: ${q} ${p.unit||"pcs"}. New stock: ${p.stock}`;
-   return;
- }
-
- if(type==="in"){
-   p.stock=cur+q;
-   save();
-   $("status").textContent=`✅ Stock In: ${q} ${p.unit||"pcs"}. New stock: ${p.stock}`;
-   return;
+  if(type==="in"){
+    p.stock=cur+q;
+    if(save()) $("status").textContent=`✅ Stock In: ${q} ${p.unit||"pcs"}. New stock: ${p.stock}`;
+    return;
+  }
 }
+
 $("process").onclick=processCommand;
+
 $("speak").onclick=()=>{
- const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!SR){$("status").textContent="Voice recognition unavailable here. Type the command.";return;}
- try{
-  const r=new SR();r.lang="hi-IN";r.interimResults=false;r.maxAlternatives=3;
-  r.onstart=()=>{$("status").textContent="🎙️ Listening… बोलिए।"};
-  r.onresult=e=>{$("cmd").value=e.results?.[0]?.[0]?.transcript||"";$("status").textContent="Voice captured. Tap Process.";};
-  r.onerror=e=>$("status").textContent="Voice error: "+e.error;r.start();
- }catch(e){$("status").textContent="Voice could not start. Please allow microphone permission."}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){
+    $("status").textContent="Voice recognition unavailable here. Type the command.";
+    return;
+  }
+  try{
+    const r=new SR();
+    r.lang="hi-IN";
+    r.interimResults=false;
+    r.maxAlternatives=3;
+    r.onstart=()=>{$("status").textContent="🎙️ Listening… बोलिए।"};
+    r.onresult=e=>{
+      $("cmd").value=e.results?.[0]?.[0]?.transcript||"";
+      $("status").textContent="Voice captured. Tap Process.";
+    };
+    r.onerror=e=>$("status").textContent="Voice error: "+e.error;
+    r.start();
+  }catch(e){
+    $("status").textContent="Voice could not start. Please allow microphone permission.";
+  }
 };
+
 render();
 
 </script></body></html>

@@ -79,6 +79,24 @@ function norm(s){
     .replace(/गद्दों/g," gadde ")
     .replace(/गद्दे/g," gadde ")
     .replace(/गद्दा/g," gadda ")
+    // Hindi number words -> numeric tokens, so "दो इंच" is treated as "2 inch".
+    .replace(/आधा/g," 0.5 ")
+    .replace(/एक/g," 1 ")
+    .replace(/दो/g," 2 ")
+    .replace(/तीन/g," 3 ")
+    .replace(/चार/g," 4 ")
+    .replace(/पाँच|पांच/g," 5 ")
+    .replace(/छह|छः/g," 6 ")
+    .replace(/सात/g," 7 ")
+    .replace(/आठ/g," 8 ")
+    .replace(/नौ/g," 9 ")
+    .replace(/दस/g," 10 ")
+    .replace(/चालीस/g," 40 ")
+    .replace(/पचास/g," 50 ")
+    .replace(/साठ/g," 60 ")
+    .replace(/सत्तर/g," 70 ")
+    .replace(/अस्सी/g," 80 ")
+    .replace(/नब्बे/g," 90 ")
     .replace(/बिक\s*गए/g," bik gaye ")
     .replace(/बिक\s*गये/g," bik gaye ")
     .replace(/आ\s*गए/g," aa gaye ")
@@ -224,62 +242,35 @@ function hasExactPhrase(text, phrase){
   return false;
 }
 
-function specText(text){
-  return norm(text)
-    // Common Hindi/Hinglish specification numbers.
-    .replace(/\bआधा\b/g,"0.5")
-    .replace(/\bएक\b/g,"1")
-    .replace(/\bदो\b/g,"2")
-    .replace(/\bतीन\b/g,"3")
-    .replace(/\bचार\b/g,"4")
-    .replace(/\bपाँच\b|\bपांच\b/g,"5")
-    .replace(/\bछह\b|\bछः\b/g,"6")
-    .replace(/\bसात\b/g,"7")
-    .replace(/\bआठ\b/g,"8")
-    .replace(/\bनौ\b/g,"9")
-    .replace(/\bदस\b/g,"10")
-    .replace(/\bचालीस\b/g,"40")
-    .replace(/\bपचास\b/g,"50")
-    .replace(/\bसाठ\b/g,"60")
-    .replace(/\bसत्तर\b/g,"70")
-    .replace(/\bअस्सी\b/g,"80")
-    .replace(/\bनब्बे\b/g,"90")
-    .replace(/\bएक\s*इंच\b/g,"1 inch")
-    .replace(/\bदो\s*इंच\b/g,"2 inch")
-    .replace(/\bतीन\s*इंच\b/g,"3 inch")
-    .replace(/\bचार\s*इंच\b/g,"4 inch")
-    .replace(/\bआधा\s*इंच\b/g,"0.5 inch");
-}
-
 function findProduct(text){
-  const n=specText(text);
+  const n=norm(text);
 
-  // If the command mentions density or thickness, BOTH specifications
-  // must be explicitly present and match an existing product.
+  // HARD SAFETY RULE:
+  // If density or thickness is mentioned, BOTH must be parsed and must
+  // exactly match one inventory item. Never fall back to product name.
   const densityMentioned=/(?:density|डेंसिटी)/i.test(n);
   const inchMentioned=/(?:inch|इंच)/i.test(n);
   const densityMatch=n.match(/(?:^|\s)(\d+(?:\.\d+)?)\s*density(?=\s|$)/i);
   const thicknessMatch=n.match(/(?:^|\s)(\d+(?:\.\d+)?)\s*inch(?=\s|$)/i);
 
   if(densityMentioned || inchMentioned){
-    // A specification was spoken but could not be parsed completely:
-    // NEVER guess another product.
     if(!densityMatch || !thicknessMatch)return null;
 
     const wantedDensity=densityMatch[1];
     const wantedThickness=thicknessMatch[1];
 
     return data.find(p=>{
-      const pd=specText(p.density);
-      const pt=specText(p.thickness);
-      return hasExactPhrase(n,wantedDensity) &&
-             hasExactPhrase(n,wantedThickness) &&
-             hasExactPhrase(pd,wantedDensity) &&
-             hasExactPhrase(pt,wantedThickness);
+      const pd=norm(p.density);
+      const pt=norm(p.thickness);
+      const pdMatch=pd.match(/(\d+(?:\.\d+)?)/);
+      const ptMatch=pt.match(/(\d+(?:\.\d+)?)/);
+      return pdMatch && ptMatch &&
+             pdMatch[1]===wantedDensity &&
+             ptMatch[1]===wantedThickness;
     }) || null;
   }
 
-  // Without specifications, allow a product-name match only when unambiguous.
+  // No specifications: only allow an unambiguous product-name match.
   const matches=data.filter(p=>{
     const name=norm(p.product);
     return name&&hasExactPhrase(n,name);

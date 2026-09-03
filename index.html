@@ -297,13 +297,21 @@ function processCommand(){
       return;
     }
     p.stock=cur-q;
-    if(save()) $("status").textContent=`✅ Stock Out: ${q} ${p.unit||"pcs"}. New stock: ${p.stock}`;
+    if(save()){
+      $("status").textContent=`✅ Stock Out: ${q} ${p.unit||"pcs"}. New stock: ${p.stock}`;
+      // A processed command must not be processed again by another Process tap.
+      $("cmd").value="";
+    }
     return;
   }
 
   if(type==="in"){
     p.stock=cur+q;
-    if(save()) $("status").textContent=`✅ Stock In: ${q} ${p.unit||"pcs"}. New stock: ${p.stock}`;
+    if(save()){
+      $("status").textContent=`✅ Stock In: ${q} ${p.unit||"pcs"}. New stock: ${p.stock}`;
+      // A processed command must not be processed again by another Process tap.
+      $("cmd").value="";
+    }
     return;
   }
 }

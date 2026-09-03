@@ -242,35 +242,45 @@ function hasExactPhrase(text, phrase){
   return false;
 }
 
-function findProduct(text){
-  const n=norm(text);
 
-  // HARD SAFETY RULE:
-  // If density or thickness is mentioned, BOTH must be parsed and must
-  // exactly match one inventory item. Never fall back to product name.
-  const densityMentioned=/(?:density|डेंसिटी)/i.test(n);
-  const inchMentioned=/(?:inch|इंच)/i.test(n);
+function parseRequestedSpec(text){
+  const n=norm(text);
   const densityMatch=n.match(/(?:^|\s)(\d+(?:\.\d+)?)\s*density(?=\s|$)/i);
   const thicknessMatch=n.match(/(?:^|\s)(\d+(?:\.\d+)?)\s*inch(?=\s|$)/i);
+  return {
+    hasSpec:/\bdensity\b|\binch\b/i.test(n),
+    density:densityMatch?densityMatch[1]:null,
+    thickness:thicknessMatch?thicknessMatch[1]:null
+  };
+}
 
-  if(densityMentioned || inchMentioned){
-    if(!densityMatch || !thicknessMatch)return null;
+function specError(spec){
+  if(spec.thickness && !spec.density)
+    return `⚠️ ${spec.thickness} inch की category inventory में मौजूद नहीं है। Stock में कोई बदलाव नहीं किया गया।`;
+  if(spec.density && !spec.thickness)
+    return `⚠️ ${spec.density} density की पूरी specification नहीं मिली। Stock में कोई बदलाव नहीं किया गया।`;
+  if(spec.thickness)
+    return `⚠️ ${spec.thickness} inch की category inventory में मौजूद नहीं है। Stock में कोई बदलाव नहीं किया गया।`;
+  return "⚠️ यह specification inventory में मौजूद नहीं है। Stock में कोई बदलाव नहीं किया गया।";
+}
 
-    const wantedDensity=densityMatch[1];
-    const wantedThickness=thicknessMatch[1];
+function findProduct(text){
+  const spec=parseRequestedSpec(text);
+  const n=norm(text);
+
+  if(spec.hasSpec){
+    // A specification command must contain BOTH density and thickness.
+    if(!spec.density || !spec.thickness)return null;
 
     return data.find(p=>{
-      const pd=norm(p.density);
-      const pt=norm(p.thickness);
-      const pdMatch=pd.match(/(\d+(?:\.\d+)?)/);
-      const ptMatch=pt.match(/(\d+(?:\.\d+)?)/);
-      return pdMatch && ptMatch &&
-             pdMatch[1]===wantedDensity &&
-             ptMatch[1]===wantedThickness;
+      const pd=norm(p.density).match(/(\d+(?:\.\d+)?)/);
+      const pt=norm(p.thickness).match(/(\d+(?:\.\d+)?)/);
+      return pd && pt &&
+             pd[1]===spec.density &&
+             pt[1]===spec.thickness;
     }) || null;
   }
 
-  // No specifications: only allow an unambiguous product-name match.
   const matches=data.filter(p=>{
     const name=norm(p.product);
     return name&&hasExactPhrase(n,name);
@@ -345,10 +355,24 @@ function processCommand(){
     return;
   }
 
+  const spec=parseRequestedSpec(raw);
   const p=findProduct(raw);
   if(!p){
-    $("status").textContent="⚠️ Product not found — stock unchanged.";
+    $("status").textContent=spec.hasSpec
+      ? specError(spec)
+      : "⚠️ Product not found — stock unchanged.";
     return;
+  }
+
+  // FINAL SAFETY LOCK: never modify a product unless its exact requested
+  // density + thickness still match the selected inventory record.
+  if(spec.hasSpec){
+    const pd=norm(p.density).match(/(\d+(?:\.\d+)?)/);
+    const pt=norm(p.thickness).match(/(\d+(?:\.\d+)?)/);
+    if(!pd || !pt || pd[1]!==spec.density || pt[1]!==spec.thickness){
+      $("status").textContent=specError(spec);
+      return;
+    }
   }
 
   const cur=Number(p.stock||0);

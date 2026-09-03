@@ -84,36 +84,71 @@ function qty(text){
   return rem.length?rem[rem.length-1]:1;
 }
 function out(text){let raw=String(text||"").toLowerCase(),n=norm(raw);return /बिक\s*गए|बिक\s*गये|बिके|बिका|बेच\s*दिए|बेच\s*दिये/.test(raw)||/\bbik\b|\bbike\b|\bbikgaye\b|\bbikgaya\b|\bsell\b|\bsold\b|\bsale\b|\bout\b|\bremove\b|\bnikal\b|\bbech\b/i.test(n)}
-function incoming(text){
-  const raw=String(text||"").toLowerCase();
+function incoming(text){let raw=String(text||"").toLowerCase(),n=norm(raw);return /आया|आए|जमा|खरीदा|खरीदे|मिला|मिले/.test(raw)||/\badd\b|\bin\b|\baaya\b|\baaye\b|\bmila\b|\bpurchase\b|\bkharida\b/i.test(n)}
+function processCommand(){
+  const raw=$("command").value||"";
   const n=norm(raw);
 
-  const hindi=[
-    "आया","आए","आई","आया है","आए हैं","आई है",
-    "आ गया","आ गए","आ गई","आ गई है",
-    "माल आया","माल आ गया","माल आ गए",
-    "जमा हुआ","जमा हो गया","जमा कर दिया",
-    "खरीदा","खरीदे","खरीद लिया","खरीद लिए",
-    "मिला","मिले","मिल गया","मिल गए",
-    "स्टॉक आया","स्टॉक आ गया","स्टॉक आ गए","स्टॉक में आया"
-  ];
+  // Detect action using both Hindi and English wording.
+  const isOut =
+    /(बिक|बेच|बिके|बिका|बेचा|बिक गया|बिक गए|sold|sell|sale|निकाल|गए|गयी)/i.test(raw) ||
+    /\b(bik|bike|bika|bech|becha|bik\s*gaye|bik\s*gaya)\b/i.test(n);
 
-  const english=[
-    "add","added","stock in","purchase","purchased","received",
-    "aaya","aaye","aayi","aaya hai","aaye hain",
-    "aa gaya","aa gaye","aa gayi","aagaya","aagaye",
-    "mila","mile","mil gaya","mil gaye",
-    "kharida","kharide","kharid liya","kharid liye"
-  ];
+  const isIn =
+    /(आया|आए|आई|आया है|आए हैं|आ गई|आ गए|आ गया|माल आया|माल आ गया|मिला|मिले|जमा|खरीदा|खरीदे|स्टॉक आया)/i.test(raw) ||
+    /\b(add|added|stock in|received|receive|purchase|purchased|aaya|aaye|aayi|aa gaya|aa gaye|aa gayi|mila|mile|kharida|kharide)\b/i.test(n);
 
-  return hindi.some(x=>raw.includes(x)) || english.some(x=>n.includes(x));
+  // Accept both "40 density 4 inch" and Hindi "40 डेंसिटी 4 इंच".
+  const dMatch = n.match(/(\d+(?:\.\d+)?)\s*density/i) ||
+                 raw.match(/(\d+(?:\.\d+)?)\s*(?:डेंसिटी|डेंसिटी)/i);
+  const tMatch = n.match(/(\d+(?:\.\d+)?)\s*inch/i) ||
+                 raw.match(/(\d+(?:\.\d+)?)\s*(?:इंच)/i);
+
+  const qtyMatch = n.match(/\b(\d+)\b\s*(?:pcs?|pieces?|gadde?|gadd[ae]?|gad[de]?)/i) ||
+                   raw.match(/(\d+)\s*(?:गद्दे?|गद्दों?)/i);
+
+  const d = dMatch ? Number(dMatch[1]) : null;
+  const t = tMatch ? Number(tMatch[1]) : null;
+  const q = qtyMatch ? Number(qtyMatch[1]) : 1;
+
+  if(d===null || t===null){
+    $("result").textContent="Command samajh nahi aaya. Example: 40 density ke 4 inch ke 2 gadde bik gaye";
+    return;
+  }
+
+  const product = products.find(p =>
+    Number(p.density)===d &&
+    Number(p.thickness)===t
+  );
+
+  if(!product){
+    $("result").textContent="Product not found. Example: 40 density ke 4 inch ke 2 gadde bik gaye";
+    return;
+  }
+
+  const cur=Number(product.stock)||0;
+
+  if(isOut && !isIn){
+    const newStock=Math.max(0,cur-q);
+    product.stock=newStock;
+    save();
+    render();
+    $("result").textContent=`✅ Stock Out: ${q} pcs. New stock: ${newStock}`;
+    return;
+  }
+
+  if(isIn && !isOut){
+    const newStock=cur+q;
+    product.stock=newStock;
+    save();
+    render();
+    $("result").textContent=`✅ Stock In: ${q} pcs. New stock: ${newStock}`;
+    return;
+  }
+
+  $("result").textContent="Command samajh nahi aaya. Example: 40 density ke 4 inch ke 2 gadde bik gaye";
 }
-function processCommand(){let raw=$("cmd").value.trim();if(!raw){$("status").textContent="Please speak or type a command.";return}let n=norm(raw),d=n.match(/(\d+(?:\.\d+)?)\s*density/i),t=n.match(/(\d+(?:\.\d+)?)\s*inch/i);if(!d||!t){$("status").textContent="Command samajh nahi aaya.";return}
-let p=findExact(d[1],t[1]+" inch");if(!p){$("status").textContent="Product not found: "+d[1]+" density, "+t[1]+" inch.";return}
-let q=qty(raw),cur=Number(p.stock||0);
-if(out(raw)){if(cur<q){$("status").textContent=`Insufficient stock. Current: ${cur} ${p.unit||"pcs"}`;return}p.stock=cur-q;save();$("status").textContent=`✅ Stock Out: ${q} ${p.unit||"pcs"}. New stock: ${p.stock}`;return}
-if(incoming(raw)){p.stock=cur+q;save();$("status").textContent=`✅ Stock In: ${q} ${p.unit||"pcs"}. New stock: ${p.stock}`;return}
-$("status").textContent="Say 'bik gaye' for Stock Out or 'add/aaya' for Stock In."}
+
 $("process").onclick=processCommand;$("search").oninput=render;$("stockInBtn").onclick=()=>openForm("in");$("stockOutBtn").onclick=()=>openForm("out");$("inventoryBtn").onclick=()=>openForm("add");$("rateBtn").onclick=()=>{$("search").focus()};$("saveProductBtn").onclick=saveProduct;$("cancelBtn").onclick=closeForm;
 $("speak").onclick=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){$("status").textContent="Voice recognition unavailable here. Type the command.";return}try{let r=new SR();r.lang="hi-IN";r.interimResults=false;r.maxAlternatives=3;r.onstart=()=>{$("status").textContent="🎙️ Listening..."};r.onresult=e=>{$("cmd").value=e.results?.[0]?.[0]?.transcript||"";$("status").textContent="Voice captured. Press Process."};r.onerror=e=>{$("status").textContent="Voice error: "+e.error};r.start()}catch(e){$("status").textContent="Voice could not start. Allow microphone permission."}};
 render();

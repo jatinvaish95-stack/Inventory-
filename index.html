@@ -237,8 +237,8 @@ function detectIntent(text){
 
   // Stock Out.
   if(
-    /(?:बिक|बेच|बिका|बिके|बेचा|निकाल|हटा|sold|sell|sale|remove)/i.test(raw) ||
-    /\b(bik|bike|bika|bicke|bech|becha|sold|sell|sale|out|remove|nikal)\b/i.test(n)
+    /(?:बिक|बेच|बिका|बिके|बेचा|चले\s*गए|चले\s*गये|चला\s*गया|निकाल|हटा|sold|sell|sale|remove)/i.test(raw) ||
+    /\b(bik|bike|bika|bicke|bech|becha|chale\s*(?:gaye|gye)|chala\s*gaya|sold|sell|sale|out|remove|nikal)\b/i.test(n)
   ) return "out";
 
   // Stock In.

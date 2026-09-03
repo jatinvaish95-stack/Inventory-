@@ -224,19 +224,58 @@ function hasExactPhrase(text, phrase){
   return false;
 }
 
-function findProduct(text){
-  const n=norm(text);
+function specText(text){
+  return norm(text)
+    // Common Hindi/Hinglish specification numbers.
+    .replace(/\bआधा\b/g,"0.5")
+    .replace(/\bएक\b/g,"1")
+    .replace(/\bदो\b/g,"2")
+    .replace(/\bतीन\b/g,"3")
+    .replace(/\bचार\b/g,"4")
+    .replace(/\bपाँच\b|\bपांच\b/g,"5")
+    .replace(/\bछह\b|\bछः\b/g,"6")
+    .replace(/\bसात\b/g,"7")
+    .replace(/\bआठ\b/g,"8")
+    .replace(/\bनौ\b/g,"9")
+    .replace(/\bदस\b/g,"10")
+    .replace(/\bचालीस\b/g,"40")
+    .replace(/\bपचास\b/g,"50")
+    .replace(/\bसाठ\b/g,"60")
+    .replace(/\bसत्तर\b/g,"70")
+    .replace(/\bअस्सी\b/g,"80")
+    .replace(/\bनब्बे\b/g,"90")
+    .replace(/\bएक\s*इंच\b/g,"1 inch")
+    .replace(/\bदो\s*इंच\b/g,"2 inch")
+    .replace(/\bतीन\s*इंच\b/g,"3 inch")
+    .replace(/\bचार\s*इंच\b/g,"4 inch")
+    .replace(/\bआधा\s*इंच\b/g,"0.5 inch");
+}
 
-  // If a density or thickness is mentioned, BOTH specifications must match.
-  // Never fall back to another thickness/product when a specification is present.
+function findProduct(text){
+  const n=specText(text);
+
+  // If the command mentions density or thickness, BOTH specifications
+  // must be explicitly present and match an existing product.
+  const densityMentioned=/(?:density|डेंसिटी)/i.test(n);
+  const inchMentioned=/(?:inch|इंच)/i.test(n);
   const densityMatch=n.match(/(?:^|\s)(\d+(?:\.\d+)?)\s*density(?=\s|$)/i);
   const thicknessMatch=n.match(/(?:^|\s)(\d+(?:\.\d+)?)\s*inch(?=\s|$)/i);
-  const hasSpec=!!densityMatch || !!thicknessMatch;
 
-  if(hasSpec){
+  if(densityMentioned || inchMentioned){
+    // A specification was spoken but could not be parsed completely:
+    // NEVER guess another product.
     if(!densityMatch || !thicknessMatch)return null;
+
+    const wantedDensity=densityMatch[1];
+    const wantedThickness=thicknessMatch[1];
+
     return data.find(p=>{
-      return hasExactPhrase(n,p.density) && hasExactPhrase(n,p.thickness);
+      const pd=specText(p.density);
+      const pt=specText(p.thickness);
+      return hasExactPhrase(n,wantedDensity) &&
+             hasExactPhrase(n,wantedThickness) &&
+             hasExactPhrase(pd,wantedDensity) &&
+             hasExactPhrase(pt,wantedThickness);
     }) || null;
   }
 

@@ -66,50 +66,47 @@ function del(id){if(confirm("Delete this product?")){data=data.filter(x=>String(
 document.addEventListener("click",e=>{let b=e.target.closest("[data-action]");if(!b)return;let id=b.dataset.id;b.dataset.action==="edit"?edit(id):del(id)})
 const words={ek:1,do:2,teen:3,char:4,chaar:4,paanch:5,panch:5,chhe:6,che:6,saat:7,aath:8,nau:9,das:10,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,"एक":1,"दो":2,"तीन":3,"चार":4,"पाँच":5,"पांच":5,"छह":6,"छः":6,"सात":7,"आठ":8,"नौ":9,"दस":10};
 function qty(text){
-  const raw=String(text||"").toLowerCase();
-  const n=norm(raw);
-  const numbers={
-    "एक":1,"दो":2,"तीन":3,"चार":4,"पाँच":5,"पांच":5,"छह":6,"छः":6,"सात":7,"आठ":8,"नौ":9,"दस":10,
-    "ek":1,"do":2,"teen":3,"char":4,"chaar":4,"paanch":5,"panch":5,"chhe":6,"che":6,"saat":7,"aath":8,"nau":9,"das":10,
-    "one":1,"two":2,"three":3,"four":4,"five":5,"six":6,"seven":7,"eight":8,"nine":9,"ten":10
-  };
-  const wordPattern="एक|दो|तीन|चार|पाँच|पांच|छह|छः|सात|आठ|नौ|दस|ek|do|teen|char|chaar|paanch|panch|chhe|che|saat|aath|nau|das|one|two|three|four|five|six|seven|eight|nine|ten";
-  let m=raw.match(new RegExp("("+wordPattern+")\\s*(?:गद्दे|गद्दों|गद्दा|gadde|gadda|pieces?|pcs|पीस|नग)","i"));
-  if(m){
-    const key=m[1].toLowerCase();
-    return numbers[key] ?? numbers[m[1]] ?? 1;
-  }
-  m=raw.match(/(\d+(?:\.\d+)?)\s*(?:गद्दे|गद्दों|गद्दा|gadde|gadda|pieces?|pcs|पीस|नग)/i);
+  let raw=String(text||""),n=norm(raw);
+
+  let m=n.match(/(\d+(?:\.\d+)?)\s*(?:gadde|gadda|pcs|pieces|piece|नग|पीस)(?=\s|$)/i);
   if(m)return Number(m[1]);
-  const d=n.match(/(\d+(?:\.\d+)?)\s*density/i);
-  const t=n.match(/(\d+(?:\.\d+)?)\s*inch/i);
-  const nums=[...n.matchAll(/\d+(?:\.\d+)?/g)].map(x=>Number(x[0]));
-  const rem=nums.filter(x=>x!==Number(d?.[1])&&x!==Number(t?.[1]));
-  return rem.length ? rem[rem.length-1] : 1;
+
+  m=raw.match(/(?:^|\s)(एक|दो|तीन|चार|पाँच|पांच|छह|छः|सात|आठ|नौ|दस)\s*(?:गद्दे|गद्दों|गद्दा|पीस|नग)(?=\s|$)/);
+  if(m)return words[m[1]];
+
+  m=n.match(/\b(ek|do|teen|char|chaar|paanch|panch|chhe|che|saat|aath|nau|das|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:gadde|gadda)(?=\s|$)/i);
+  if(m)return words[m[1].toLowerCase()];
+
+  let d=n.match(/(\d+(?:\.\d+)?)\s*density/i),
+      t=n.match(/(\d+(?:\.\d+)?)\s*inch/i),
+      nums=[...n.matchAll(/\b\d+(?:\.\d+)?\b/g)].map(x=>Number(x[0]));
+  let rem=nums.filter(x=>x!==Number(d?.[1])&&x!==Number(t?.[1]));
+  return rem.length?rem[rem.length-1]:1;
 }
 function out(text){let raw=String(text||"").toLowerCase(),n=norm(raw);return /बिक\s*गए|बिक\s*गये|बिके|बिका|बेच\s*दिए|बेच\s*दिये/.test(raw)||/\bbik\b|\bbike\b|\bbikgaye\b|\bbikgaya\b|\bsell\b|\bsold\b|\bsale\b|\bout\b|\bremove\b|\bnikal\b|\bbech\b/i.test(n)}
 function incoming(text){
   const raw=String(text||"").toLowerCase();
   const n=norm(raw);
 
-  const hindiPhrases=[
-    "आया","आए","आई","आया है","आए हैं","आई है","आ गया","आ गए","आ गई",
-    "माल आया","माल आए","माल आ गया","माल आ गए","माल आ गई",
+  const hindi=[
+    "आया","आए","आई","आया है","आए हैं","आई है",
+    "आ गया","आ गए","आ गई","आ गई है",
+    "माल आया","माल आ गया","माल आ गए",
     "जमा हुआ","जमा हो गया","जमा कर दिया",
     "खरीदा","खरीदे","खरीद लिया","खरीद लिए",
     "मिला","मिले","मिल गया","मिल गए",
-    "स्टॉक आया","स्टॉक आए","स्टॉक आ गया","स्टॉक आ गए","स्टॉक में आया"
+    "स्टॉक आया","स्टॉक आ गया","स्टॉक आ गए","स्टॉक में आया"
   ];
 
-  const englishPhrases=[
+  const english=[
     "add","added","stock in","purchase","purchased","received",
-    "aaya","aaye","aayi","aaya hai","aaye hain","aa gaya","aa gaye","aa gayi",
-    "aa gayi hai","aagaya","aagaye","mila","mile","mil gaya","mil gaye",
+    "aaya","aaye","aayi","aaya hai","aaye hain",
+    "aa gaya","aa gaye","aa gayi","aagaya","aagaye",
+    "mila","mile","mil gaya","mil gaye",
     "kharida","kharide","kharid liya","kharid liye"
   ];
 
-  return hindiPhrases.some(x=>raw.includes(x)) ||
-         englishPhrases.some(x=>n.includes(x));
+  return hindi.some(x=>raw.includes(x)) || english.some(x=>n.includes(x));
 }
 function processCommand(){let raw=$("cmd").value.trim();if(!raw){$("status").textContent="Please speak or type a command.";return}let n=norm(raw),d=n.match(/(\d+(?:\.\d+)?)\s*density/i),t=n.match(/(\d+(?:\.\d+)?)\s*inch/i);if(!d||!t){$("status").textContent="Command samajh nahi aaya.";return}
 let p=findExact(d[1],t[1]+" inch");if(!p){$("status").textContent="Product not found: "+d[1]+" density, "+t[1]+" inch.";return}
@@ -118,6 +115,6 @@ if(out(raw)){if(cur<q){$("status").textContent=`Insufficient stock. Current: ${c
 if(incoming(raw)){p.stock=cur+q;save();$("status").textContent=`✅ Stock In: ${q} ${p.unit||"pcs"}. New stock: ${p.stock}`;return}
 $("status").textContent="Say 'bik gaye' for Stock Out or 'add/aaya' for Stock In."}
 $("process").onclick=processCommand;$("search").oninput=render;$("stockInBtn").onclick=()=>openForm("in");$("stockOutBtn").onclick=()=>openForm("out");$("inventoryBtn").onclick=()=>openForm("add");$("rateBtn").onclick=()=>{$("search").focus()};$("saveProductBtn").onclick=saveProduct;$("cancelBtn").onclick=closeForm;
-$("speak").onclick=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){$("status").textContent="Voice recognition unavailable here. Type the command.";return}try{let r=new SR();r.lang="hi-IN";r.interimResults=false;r.maxAlternatives=3;r.onstart=()=>{$("status").textContent="🎙️ Listening..."};r.onresult=e=>{const heard=e.results?.[0]?.[0]?.transcript||"";$("cmd").value=heard;$("status").textContent="Voice captured: "+heard+" — Press Process."};r.onerror=e=>{$("status").textContent="Voice error: "+e.error};r.start()}catch(e){$("status").textContent="Voice could not start. Allow microphone permission."}};
+$("speak").onclick=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){$("status").textContent="Voice recognition unavailable here. Type the command.";return}try{let r=new SR();r.lang="hi-IN";r.interimResults=false;r.maxAlternatives=3;r.onstart=()=>{$("status").textContent="🎙️ Listening..."};r.onresult=e=>{$("cmd").value=e.results?.[0]?.[0]?.transcript||"";$("status").textContent="Voice captured. Press Process."};r.onerror=e=>{$("status").textContent="Voice error: "+e.error};r.start()}catch(e){$("status").textContent="Voice could not start. Allow microphone permission."}};
 render();
 </script></body></html>

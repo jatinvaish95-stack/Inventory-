@@ -70,6 +70,7 @@ function loadData(){
 }
 
 let data=loadData();
+data.forEach((p,i)=>{if(!p.id)p.id="p_"+i+"_"+Math.random().toString(36).slice(2,8);});
 const $=id=>document.getElementById(id);
 
 function norm(s){
@@ -129,6 +130,23 @@ function save(){
   }
 }
 
+function editProduct(id){
+  const p=data.find(x=>String(x.id)===String(id));
+  if(!p){
+    $("status").textContent="⚠️ Product नहीं मिला — कोई बदलाव नहीं किया गया।";
+    return;
+  }
+  $("form").classList.remove("hidden");
+  $("formTitle").textContent="✏️ Edit Product";
+  $("form").dataset.mode="edit";
+  $("form").dataset.editId=String(p.id);
+  $("product").value=p.product||"";
+  $("density").value=p.density||"";
+  $("thickness").value=p.thickness||"";
+  $("unit").value=p.unit||"pcs";
+  $("stock").value=Number(p.stock||0);
+  $("rate").value=Number(p.rate||0);
+}
 function render(){
   const q=norm($("search").value);
   const list=data.filter(p=>!q||[
@@ -143,7 +161,7 @@ function render(){
         <td>${esc(p.unit||"pcs")}</td>
         <td><b>${Number(p.stock||0)}</b></td>
         <td>${money(p.rate)}</td>
-        <td>—</td>
+        <td><button type="button" class="row edit-btn" data-edit-id="${esc(p.id)}">✏️ Edit</button></td>
       </tr>`).join("")
     : `<tr><td colspan="7" class="empty">No products added.</td></tr>`;
 
@@ -183,8 +201,19 @@ function saveProduct(){
     p.stock=mode==="in"
       ? Number(p.stock||0)+stock
       : Number(p.stock||0)-stock;
+  }else if(mode==="edit"){
+    const id=$("form").dataset.editId;
+    const p=data.find(x=>String(x.id)===String(id));
+    if(!p){alert("Product not found.");return;}
+    p.product=product;
+    p.density=density;
+    p.thickness=thickness;
+    p.unit=unit;
+    p.stock=stock;
+    p.rate=rate;
   }else{
-    data.push({product,density,thickness,unit,stock,rate});
+    data.push({id:"p_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,8),
+      product,density,thickness,unit,stock,rate});
   }
 
   if(save()){
@@ -200,6 +229,10 @@ $("rateBtn").onclick=()=>$("search").focus();
 $("saveProductBtn").onclick=saveProduct;
 $("cancelBtn").onclick=closeForm;
 $("search").oninput=render;
+$("body").addEventListener("click",e=>{
+  const b=e.target.closest("[data-edit-id]");
+  if(b) editProduct(b.dataset.editId);
+});
 
 const words={
   ek:1,do:2,teen:3,char:4,chaar:4,paanch:5,panch:5,chhe:6,che:6,saat:7,aath:8,nau:9,das:10,

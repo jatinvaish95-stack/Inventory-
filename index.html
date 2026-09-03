@@ -210,21 +210,43 @@ function explicitQty(text){
   return null;
 }
 
+function hasExactPhrase(text, phrase){
+  const hay=norm(text).split(/\s+/).filter(Boolean);
+  const needle=norm(phrase).split(/\s+/).filter(Boolean);
+  if(!hay.length || !needle.length)return false;
+  for(let i=0;i<=hay.length-needle.length;i++){
+    let ok=true;
+    for(let j=0;j<needle.length;j++){
+      if(hay[i+j]!==needle[j]){ok=false;break;}
+    }
+    if(ok)return true;
+  }
+  return false;
+}
+
 function findProduct(text){
   const n=norm(text);
-  const exact=data.find(p=>{
-    const d=norm(p.density),t=norm(p.thickness);
-    return d&&t&&n.includes(d)&&n.includes(t);
-  });
-  if(exact)return exact;
 
+  // If a density or thickness is mentioned, BOTH specifications must match.
+  // Never fall back to another thickness/product when a specification is present.
+  const densityMatch=n.match(/(?:^|\s)(\d+(?:\.\d+)?)\s*density(?=\s|$)/i);
+  const thicknessMatch=n.match(/(?:^|\s)(\d+(?:\.\d+)?)\s*inch(?=\s|$)/i);
+  const hasSpec=!!densityMatch || !!thicknessMatch;
+
+  if(hasSpec){
+    if(!densityMatch || !thicknessMatch)return null;
+    return data.find(p=>{
+      return hasExactPhrase(n,p.density) && hasExactPhrase(n,p.thickness);
+    }) || null;
+  }
+
+  // Without specifications, allow a product-name match only when unambiguous.
   const matches=data.filter(p=>{
     const name=norm(p.product);
-    return name&&n.includes(name);
+    return name&&hasExactPhrase(n,name);
   });
   return matches.length===1?matches[0]:null;
 }
-
 function detectIntent(text){
   const raw=String(text||"");
   const n=norm(raw);

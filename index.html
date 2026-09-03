@@ -88,7 +88,11 @@ function qty(text){
   return rem.length ? rem[rem.length-1] : 1;
 }
 function out(text){let raw=String(text||"").toLowerCase(),n=norm(raw);return /बिक\s*गए|बिक\s*गये|बिके|बिका|बेच\s*दिए|बेच\s*दिये/.test(raw)||/\bbik\b|\bbike\b|\bbikgaye\b|\bbikgaya\b|\bsell\b|\bsold\b|\bsale\b|\bout\b|\bremove\b|\bnikal\b|\bbech\b/i.test(n)}
-function incoming(text){let raw=String(text||"").toLowerCase(),n=norm(raw);return /आया|आए|जमा|खरीदा|खरीदे|मिला|मिले/.test(raw)||/\badd\b|\bin\b|\baaya\b|\baaye\b|\bmila\b|\bpurchase\b|\bkharida\b/i.test(n)}
+function incoming(text){
+  const raw=String(text||"").toLowerCase(), n=norm(raw);
+  return /आया|आए|आया है|आया था|आया है|आ गया|आ गए|आ गई|आ गई है|माल आया|माल आ गया|माल आ गए|जमा हुआ|जमा हो गया|जमा कर दिया|खरीदा|खरीदे|खरीद लिया|खरीद लिए|मिला|मिले|मिल गया|मिल गए|स्टॉक आया|स्टॉक आ गया|स्टॉक आ गए|स्टॉक में आया/.test(raw)
+    || /\badd\b|\badded\b|\bin\b|\bstock in\b|\baaya\b|\baaye\b|\baaya hai\b|\baa gaya\b|\baa gaye\b|\aa gayi\b|\bmila\b|\bmile\b|\bmil gaya\b|\bmil gaye\b|\bpurchase\b|\bpurchased\b|\bkharida\b|\bkharide\b|\bkharid liya\b|\breceived\b/i.test(n);
+}
 function processCommand(){
   let raw=$("cmd").value.trim();
   if(!raw){$("status").textContent="Please speak or type a command.";return}

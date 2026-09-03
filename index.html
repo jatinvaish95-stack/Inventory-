@@ -17,7 +17,7 @@ button{border:0;border-radius:12px;padding:13px;font-size:16px;font-weight:600;c
 .action{background:#f7f8fb;border:1px solid #e4e6ec;text-align:left}.action small{display:block;color:#777;margin-top:4px;font-weight:400}
 .add{background:#16a34a;color:#fff;width:100%;margin-top:10px}.cancel{background:#eee;width:100%;margin-top:7px}.hidden{display:none}.search{margin-bottom:10px}
 .wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:10px 7px;border-bottom:1px solid #eee;white-space:nowrap}th{background:#f4f4f5}
-.row button{padding:7px 8px;font-size:12px;margin-right:3px}.empty{text-align:center;color:#777;padding:20px}
+.row button,.edit-btn{padding:8px 10px;font-size:12px;margin-right:3px;display:inline-block;white-space:nowrap;background:#eef2ff;color:#18213a;border:1px solid #cfd6ff}.empty{text-align:center;color:#777;padding:20px}
 @media(max-width:480px){.app{padding:10px}h1{font-size:25px}}
 </style></head>
 <body><div class="app">
@@ -161,7 +161,7 @@ function render(){
         <td>${esc(p.unit||"pcs")}</td>
         <td><b>${Number(p.stock||0)}</b></td>
         <td>${money(p.rate)}</td>
-        <td><button type="button" class="row edit-btn" data-edit-id="${esc(p.id)}">✏️ Edit</button></td>
+        <td><button type="button" class="edit-btn" data-edit-id="${esc(p.id)}" onclick="editProduct(this.dataset.editId)">✏️ EDIT</button></td>
       </tr>`).join("")
     : `<tr><td colspan="7" class="empty">No products added.</td></tr>`;
 
@@ -277,13 +277,20 @@ function hasExactPhrase(text, phrase){
 
 
 function parseRequestedSpec(text){
-  const n=norm(text);
+  const raw=String(text||"");
+  const n=norm(raw);
   const densityMatch=n.match(/(?:^|\s)(\d+(?:\.\d+)?)\s*density(?=\s|$)/i);
+
+  // Version 2: the voice word "आधा" means the inventory value "1/2".
+  // No other half-inch aliases are added.
+  const halfInch=/(?:^|\s)आधा(?:\s+|$)/i.test(raw);
   const thicknessMatch=n.match(/(?:^|\s)(\d+(?:\.\d+)?)\s*inch(?=\s|$)/i);
+
   return {
-    hasSpec:/\bdensity\b|\binch\b/i.test(n),
+    hasSpec:/\bdensity\b|\binch\b/i.test(n)||halfInch,
     density:densityMatch?densityMatch[1]:null,
-    thickness:thicknessMatch?thicknessMatch[1]:null
+    thickness:halfInch?"1/2":(thicknessMatch?thicknessMatch[1]:null),
+    halfInch
   };
 }
 
@@ -307,10 +314,15 @@ function findProduct(text){
 
     return data.find(p=>{
       const pd=norm(p.density).match(/(\d+(?:\.\d+)?)/);
-      const pt=norm(p.thickness).match(/(\d+(?:\.\d+)?)/);
-      return pd && pt &&
-             pd[1]===spec.density &&
-             pt[1]===spec.thickness;
+      const storedThickness=String(p.thickness||"").trim();
+      const pt=norm(storedThickness).match(/(\d+(?:\.\d+)?)/);
+      const halfStored=/^1\s*\/\s*2(?:\s*inch)?$/i.test(storedThickness) ||
+                        norm(storedThickness)==="1 2" ||
+                        Number(pt?.[1])===0.5;
+      const thicknessMatches=spec.halfInch
+        ? halfStored
+        : (pt && pt[1]===spec.thickness);
+      return pd && pd[1]===spec.density && thicknessMatches;
     }) || null;
   }
 
@@ -401,8 +413,16 @@ function processCommand(){
   // density + thickness still match the selected inventory record.
   if(spec.hasSpec){
     const pd=norm(p.density).match(/(\d+(?:\.\d+)?)/);
-    const pt=norm(p.thickness).match(/(\d+(?:\.\d+)?)/);
-    if(!pd || !pt || pd[1]!==spec.density || pt[1]!==spec.thickness){
+    const storedThickness=String(p.thickness||"").trim();
+    const pt=norm(storedThickness).match(/(\d+(?:\.\d+)?)/);
+    const halfStored=/^1\s*\/\s*2(?:\s*inch)?$/i.test(storedThickness) ||
+                      norm(storedThickness)==="1 2" ||
+                      Number(pt?.[1])===0.5;
+    const thicknessMatches=spec.halfInch
+      ? halfStored
+      : (pt && pt[1]===spec.thickness);
+
+    if(!pd || pd[1]!==spec.density || !thicknessMatches){
       $("status").textContent=specError(spec);
       return;
     }

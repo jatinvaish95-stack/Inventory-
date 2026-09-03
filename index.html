@@ -126,43 +126,85 @@ function intent(text){
 
 function processCommand(){
  const raw=$("cmd").value.trim();
- if(!raw){$("status").textContent="Please speak or type a command.";return;}
+
+ // NEVER treat an empty Process press as Add.
+ if(!raw){
+   $("status").textContent="⚠️ Command खाली है — stock में कोई बदलाव नहीं किया गया।";
+   return;
+ }
+
  const type=intent(raw);
  const p=findProduct(raw);
 
- // Rate / information question: report only, never modify stock.
+ // Questions never change stock.
  if(type==="query"){
-  if(!p){$("status").textContent="Product not found. Please mention density and thickness.";return;}
-  $("status").textContent=`💰 Rate: ${money(p.rate)} per ${p.unit||"pcs"} | Stock: ${Number(p.stock||0)}`;
-  return;
+   if(!p){$("status").textContent="Product not found. Please mention density and thickness.";return;}
+   $("status").textContent=`💰 Rate: ${money(p.rate)} per ${p.unit||"pcs"} | Stock: ${Number(p.stock||0)}`;
+   return;
  }
 
+ // Unknown commands never change stock.
  if(type==="unknown"){
-  $("status").textContent="Command samajh nahi aaya. Say 'aa gaye' for Stock In or 'bik gaye' for Stock Out.";
-  return;
+   $("status").textContent="⚠️ Command clear नहीं है — stock में कोई बदलाव नहीं किया गया।";
+   return;
  }
 
  if(!p){
-  $("status").textContent="Product not found. Example: 40 density ke 4 inch ke 2 gadde bik gaye";
-  return;
+   $("status").textContent="⚠️ Product not found — stock में कोई बदलाव नहीं किया गया।";
+   return;
  }
 
- const q=getQty(raw),cur=Number(p.stock||0);
+ // Quantity MUST be explicitly present. Density/thickness are NOT quantity.
+ const rawN=norm(raw);
+ let q=null;
+ let m=raw.match(/(?:^|\s)(एक|दो|तीन|चार|पाँच|पांच|छह|छः|सात|आठ|नौ|दस)\s*(?:गद्दे|गद्दों|गद्दा|पीस|नग)(?=\s|$)/);
+ if(m) q=words[m[1]];
+
+ if(q===null){
+   m=rawN.match(/\b(ek|do|teen|char|chaar|paanch|panch|chhe|che|saat|aath|nau|das|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:gadde|gadda|pcs|pieces|piece)(?=\s|$)/i);
+   if(m) q=words[m[1].toLowerCase()];
+ }
+
+ if(q===null){
+   m=rawN.match(/\b(\d+(?:\.\d+)?)\s*(?:gadde|gadda|pcs|pieces|piece|नग|पीस)(?=\s|$)/i);
+   if(m) q=Number(m[1]);
+ }
+
+ // Explicit numeric quantity before the action, e.g. "2 gadde aa gaye".
+ if(q===null){
+   m=rawN.match(/\b(\d+(?:\.\d+)?)\b(?=\s+(?:aa|aaye|aaya|aagaye|bik|bike|sold|sell|gaye|gaya)\b)/i);
+   if(m){
+     const candidate=Number(m[1]);
+     const d=Number((rawN.match(/(\d+(?:\.\d+)?)\s*density/i)||[])[1]);
+     const t=Number((rawN.match(/(\d+(?:\.\d+)?)\s*inch/i)||[])[1]);
+     if(candidate!==d && candidate!==t) q=candidate;
+   }
+ }
+
+ if(q===null || !Number.isFinite(q) || q<=0){
+   $("status").textContent="⚠️ Quantity साफ़ लिखें, जैसे: “2 गद्दे आ गए” — stock में कोई बदलाव नहीं किया गया।";
+   return;
+ }
+
+ const cur=Number(p.stock||0);
+
  if(type==="out"){
-  if(cur<q){$("status").textContent=`Not enough stock. Available: ${cur} ${p.unit||"pcs"}`;return;}
-  p.stock=cur-q;
-  save();
-  $("status").textContent=`✅ Stock Out: ${q} ${p.unit||"pcs"}. New stock: ${p.stock}`;
-  return;
+   if(cur<q){
+     $("status").textContent=`Not enough stock. Available: ${cur} ${p.unit||"pcs"}`;
+     return;
+   }
+   p.stock=cur-q;
+   save();
+   $("status").textContent=`✅ Stock Out: ${q} ${p.unit||"pcs"}. New stock: ${p.stock}`;
+   return;
  }
- if(type==="in"){
-  p.stock=cur+q;
-  save();
-  $("status").textContent=`✅ Stock In: ${q} ${p.unit||"pcs"}. New stock: ${p.stock}`;
-  return;
- }
-}
 
+ if(type==="in"){
+   p.stock=cur+q;
+   save();
+   $("status").textContent=`✅ Stock In: ${q} ${p.unit||"pcs"}. New stock: ${p.stock}`;
+   return;
+}
 $("process").onclick=processCommand;
 $("speak").onclick=()=>{
  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;

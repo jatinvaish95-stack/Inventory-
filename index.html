@@ -89,13 +89,27 @@ function qty(text){
 }
 function out(text){let raw=String(text||"").toLowerCase(),n=norm(raw);return /बिक\s*गए|बिक\s*गये|बिके|बिका|बेच\s*दिए|बेच\s*दिये/.test(raw)||/\bbik\b|\bbike\b|\bbikgaye\b|\bbikgaya\b|\bsell\b|\bsold\b|\bsale\b|\bout\b|\bremove\b|\bnikal\b|\bbech\b/i.test(n)}
 function incoming(text){let raw=String(text||"").toLowerCase(),n=norm(raw);return /आया|आए|जमा|खरीदा|खरीदे|मिला|मिले/.test(raw)||/\badd\b|\bin\b|\baaya\b|\baaye\b|\bmila\b|\bpurchase\b|\bkharida\b/i.test(n)}
-function processCommand(){let raw=$("cmd").value.trim();if(!raw){$("status").textContent="Please speak or type a command.";return}let n=norm(raw),d=n.match(/(\d+(?:\.\d+)?)\s*density/i),t=n.match(/(\d+(?:\.\d+)?)\s*inch/i);if(!d||!t){$("status").textContent="Command samajh nahi aaya.";return}
-let p=findExact(d[1],t[1]+" inch");if(!p){$("status").textContent="Product not found: "+d[1]+" density, "+t[1]+" inch.";return}
-let q=qty(raw),cur=Number(p.stock||0);
-if(out(raw)){if(cur<q){$("status").textContent=`Insufficient stock. Current: ${cur} ${p.unit||"pcs"}`;return}p.stock=cur-q;save();$("status").textContent=`✅ Stock Out: ${q} ${p.unit||"pcs"}. New stock: ${p.stock}`;return}
-if(incoming(raw)){p.stock=cur+q;save();$("status").textContent=`✅ Stock In: ${q} ${p.unit||"pcs"}. New stock: ${p.stock}`;return}
-$("status").textContent="Say 'bik gaye' for Stock Out or 'add/aaya' for Stock In."}
+function processCommand(){
+  let raw=$("cmd").value.trim();
+  if(!raw){$("status").textContent="Please speak or type a command.";return}
+  let n=norm(raw),
+      d=n.match(/(\\d+(?:\\.\\d+)?)\\s*density/i),
+      t=n.match(/(\\d+(?:\\.\\d+)?)\\s*inch/i);
+  if(!d||!t){$("status").textContent="Command samajh nahi aaya.";return}
+  let p=findExact(d[1],t[1]+" inch");
+  if(!p){$("status").textContent="Product not found: "+d[1]+" density, "+t[1]+" inch.";return}
+  let q=qty(raw),cur=Number(p.stock||0);
+  if(out(raw)){
+    if(cur<q){$("status").textContent=`Insufficient stock. Current: ${cur} ${p.unit||"pcs"}`;return}
+    p.stock=cur-q;save();$("status").textContent=`✅ Stock Out: ${q} ${p.unit||"pcs"}. New stock: ${p.stock}`;return
+  }
+  if(incoming(raw)){
+    p.stock=cur+q;save();$("status").textContent=`✅ Stock In: ${q} ${p.unit||"pcs"}. New stock: ${p.stock}`;return
+  }
+  $("status").textContent="Say 'bik gaye' for Stock Out or 'add/aaya' for Stock In.";
+}
+
 $("process").onclick=processCommand;$("search").oninput=render;$("stockInBtn").onclick=()=>openForm("in");$("stockOutBtn").onclick=()=>openForm("out");$("inventoryBtn").onclick=()=>openForm("add");$("rateBtn").onclick=()=>{$("search").focus()};$("saveProductBtn").onclick=saveProduct;$("cancelBtn").onclick=closeForm;
-$("speak").onclick=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){$("status").textContent="Voice recognition unavailable here. Type the command.";return}try{let r=new SR();r.lang="hi-IN";r.interimResults=false;r.maxAlternatives=3;r.onstart=()=>{$("status").textContent="🎙️ Listening..."};r.onresult=e=>{const heard=e.results?.[0]?.[0]?.transcript||"";$("cmd").value=heard;$("status").textContent="Voice captured: "+heard+" — Press Process."};r.onerror=e=>{$("status").textContent="Voice error: "+e.error};r.start()}catch(e){$("status").textContent="Voice could not start. Allow microphone permission."}};
+$("speak").onclick=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){$("status").textContent="Voice recognition unavailable here. Type the command.";return}try{let r=new SR();r.lang="hi-IN";r.interimResults=false;r.maxAlternatives=3;r.onstart=()=>{$("status").textContent="🎙️ Listening..."};r.onresult=e=>{const heard=e.results?.[0]?.[0]?.transcript||"";$("cmd").value=heard;$("status").textContent="Voice captured: "+heard+" — Processing...";processCommand();};r.onerror=e=>{$("status").textContent="Voice error: "+e.error};r.start()}catch(e){$("status").textContent="Voice could not start. Allow microphone permission."}};
 render();
 </script></body></html>

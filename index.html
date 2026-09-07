@@ -52,6 +52,7 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 const KEY="city_group_inventory_v1";
 const FALLBACK_KEY="city_group_stock_manager_v1";
 let data=loadLocalData();
+const $=id=>document.getElementById(id);
 let syncing=true;
 let consumedCommand="";
 
@@ -198,7 +199,7 @@ async function syncFromSupabase(){
   }catch(e){
     console.error(e);
     render();
-    $("status").textContent="⚠️ Supabase sync failed: ${e?.message||"Unknown error"}";
+    $("status").textContent=`⚠️ Supabase sync failed: ${e?.message||"Unknown error"}`;
   }finally{
     syncing=false;
   }

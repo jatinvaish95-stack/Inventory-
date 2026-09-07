@@ -166,7 +166,7 @@ async function syncFromSupabase(){
   syncing=true;
   $("status").textContent="☁️ Syncing shared inventory…";
   try{
-    const {data:rows,error}=await sb.from('Inventory').select("*").order("id",{ascending:true});
+    const {data:rows,error}=await sb.from("Inventory").select("*").order("id",{ascending:true});
     if(error) throw error;
 
     // First-time migration: if the cloud table is empty but this phone has
@@ -181,7 +181,7 @@ async function syncFromSupabase(){
         Rate:Number(p.rate||0)
       }));
 
-      const {data:inserted,error:insertError}=await sb.from('Inventory')
+      const {data:inserted,error:insertError}=await sb.from("Inventory")
         .insert(payload).select("*");
       if(insertError) throw insertError;
 
@@ -198,21 +198,21 @@ async function syncFromSupabase(){
   }catch(e){
     console.error(e);
     render();
-    $("status").textContent="⚠️ Supabase sync failed: "+(e?.message||"Unknown error");
+    $("status").textContent="⚠️ Supabase sync failed: ${e?.message||"Unknown error"}";
   }finally{
     syncing=false;
   }
 }
 
 async function addRemote(product,density,thickness,unit,stock,rate){
-  const {data:rows,error}=await sb.from('Inventory')
+  const {data:rows,error}=await sb.from("Inventory")
     .insert([{Product:product,Density:density,Thickness:thickness,Unit:unit,Stock:stock,Rate:rate}]).select("*").single();
   if(error) throw error;
   return rowToLocal(rows);
 }
 
 async function updateRemote(id,changes){
-  const {data:rows,error}=await sb.from('Inventory')
+  const {data:rows,error}=await sb.from("Inventory")
     .update(changes).eq("id",id).select("*").single();
   if(error) throw error;
   return rowToLocal(rows);
@@ -284,7 +284,7 @@ async function saveProduct(){
       const id=$("form").dataset.editId;
       const p=data.find(x=>String(x.id)===String(id));
       if(!p){alert("Product not found.");return;}
-      const updated=await updateRemote(id,{product,density,thickness,unit,stock,rate});
+      const updated=await updateRemote(id,{Product:product,Density:density,Thickness:thickness,Unit:unit,Stock:stock,Rate:rate});
       data=data.map(x=>String(x.id)===String(id)?updated:x);
     }else{
       const newProduct=await addRemote(product,density,thickness,unit,stock,rate);

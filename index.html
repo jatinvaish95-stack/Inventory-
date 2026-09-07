@@ -1,1415 +1,536 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#fff4c7">
-<title>City Group Stock Manager</title>
-
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#fff4c7"><title>City Group Stock Manager</title>
 <style>
-*{box-sizing:border-box}
-body{margin:0;background:#f5f6fb;color:#18213a;font-family:Arial,sans-serif}
-.app{max-width:760px;margin:auto;padding:16px 14px 35px}
-header{text-align:center;padding:10px 0 18px}
-h1{margin:0;font-size:28px}
-.sub{font-size:19px;margin-top:3px}
-header p{color:#777}
+*{box-sizing:border-box}body{margin:0;background:#f5f6fb;color:#18213a;font-family:Arial,sans-serif}
+.app{max-width:760px;margin:auto;padding:16px 14px 35px}header{text-align:center;padding:10px 0 18px}
+h1{margin:0;font-size:28px}.sub{font-size:19px;margin-top:3px}header p{color:#777}
 .card{background:#fff;border-radius:18px;padding:17px;margin:12px 0;box-shadow:0 3px 15px #0001}
-h2{font-size:20px;margin:0 0 14px}
-.voicebox{border:1px solid #ddd;border-radius:14px;padding:13px}
+h2{font-size:20px;margin:0 0 14px}.voicebox{border:1px solid #ddd;border-radius:14px;padding:13px}
 textarea,input{width:100%;padding:13px;border:1px solid #d9dce5;border-radius:12px;font-size:16px}
-textarea{height:82px;resize:vertical}
-.buttons,.stats,.actions,.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
-button{border:0;border-radius:12px;padding:13px;font-size:16px;font-weight:600;cursor:pointer}
-.speak{background:#f9c83d}
-.process{background:#18213a;color:white}
+textarea{height:82px;resize:vertical}.buttons,.stats,.actions,.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+button{border:0;border-radius:12px;padding:13px;font-size:16px;font-weight:600;cursor:pointer}.speak{background:#f9c83d}.process{background:#18213a;color:white}
 .status{margin-top:10px;background:#f1f2f5;border-radius:10px;padding:10px;min-height:40px;color:#555}
-.stat{padding:17px;text-align:center;border-radius:15px;background:#eeeaff}
-.stat:nth-child(2){background:#fff1bd}
-.stat b{display:block;font-size:26px;margin-top:5px}
-.action{background:#f7f8fb;border:1px solid #e4e6ec;text-align:left}
-.action small{display:block;color:#777;margin-top:4px;font-weight:400}
-.add{background:#16a34a;color:#fff;width:100%;margin-top:10px}
-.cancel{background:#eee;width:100%;margin-top:7px}
-.hidden{display:none}
-.search{margin-bottom:10px}
-.wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:14px}
-th,td{text-align:left;padding:10px 7px;border-bottom:1px solid #eee;white-space:nowrap}
-th{background:#f4f4f5}
-.row button{padding:7px 8px;font-size:12px;margin-right:3px}
-.empty{text-align:center;color:#777;padding:20px}
-@media(max-width:480px){
-.app{padding:10px}
-h1{font-size:25px}
-}
-</style>
-</head>
-
-<body>
-<div class="app">
-
-<header>
-<div style="font-size:30px">🏢</div>
-<h1>CITY GROUP</h1>
-<div class="sub">Stock Manager</div>
-<p>Speak Your Stock Command</p>
-</header>
-
-<section class="card">
-<h2>🎙️ Voice Command</h2>
-<div class="voicebox">
-<div style="color:#777;font-size:13px;margin-bottom:8px">
-Example: “40 density ke 4 inch ke 2 gadde bik gaye”
-</div>
-
+.stat{padding:17px;text-align:center;border-radius:15px;background:#eeeaff}.stat:nth-child(2){background:#fff1bd}.stat b{display:block;font-size:26px;margin-top:5px}
+.action{background:#f7f8fb;border:1px solid #e4e6ec;text-align:left}.action small{display:block;color:#777;margin-top:4px;font-weight:400}
+.add{background:#16a34a;color:#fff;width:100%;margin-top:10px}.cancel{background:#eee;width:100%;margin-top:7px}.hidden{display:none}.search{margin-bottom:10px}
+.wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:10px 7px;border-bottom:1px solid #eee;white-space:nowrap}th{background:#f4f4f5}
+.row button{padding:7px 8px;font-size:12px;margin-right:3px}.empty{text-align:center;color:#777;padding:20px}
+@media(max-width:480px){.app{padding:10px}h1{font-size:25px}}
+</style></head>
+<body><div class="app">
+<header><div style="font-size:30px">🏢</div><h1>CITY GROUP</h1><div class="sub">Stock Manager</div><p>Speak Your Stock Command</p></header>
+<section class="card"><h2>🎙️ Voice Command</h2><div class="voicebox">
+<div style="color:#777;font-size:13px;margin-bottom:8px">Example: “40 density ke 4 inch ke 2 gadde bik gaye”</div>
 <textarea id="cmd" placeholder="Speak or type your command..."></textarea>
-
-<div class="buttons">
-<button class="speak" id="speak">🎙️ Speak</button>
-<button class="process" id="process">⚡ Process</button>
+<div class="buttons"><button class="speak" id="speak">🎙️ Speak</button><button class="process" id="process">⚡ Process</button></div>
+<div class="status" id="status">Ready.</div></div></section>
+<section class="card"><h2>📊 Overview</h2><div class="stats"><div class="stat">Total Stock Units<b id="total">0</b></div><div class="stat">Inventory Value<b id="value">₹0</b></div></div></section>
+<section class="card"><h2>⚡ Quick Actions</h2><div class="actions">
+<button class="action" id="stockInBtn">➕ Stock In<small>Add stock</small></button><button class="action" id="stockOutBtn">➖ Stock Out<small>Sell / remove</small></button>
+<button class="action" id="inventoryBtn">📦 Inventory<small>Add product</small></button><button class="action" id="rateBtn">💰 Rate List<small>Search rates</small></button>
+</div></section>
+<section class="card hidden" id="form"><h2 id="formTitle">➕ Add Product</h2><div class="formgrid">
+<input id="product" placeholder="Product (e.g. Gadda)"><input id="density" placeholder="Density (e.g. 40)">
+<input id="thickness" placeholder="Thickness (e.g. 4 inch)"><input id="unit" placeholder="Unit (e.g. pcs)" value="pcs">
+<input id="stock" type="number" min="0" placeholder="Stock"><input id="rate" type="number" min="0" placeholder="Rate">
+</div><button class="add" id="saveProductBtn">💾 Save</button><button class="cancel" id="cancelBtn">Cancel</button></section>
+<section class="card"><h2>📦 Current Inventory</h2><input class="search" id="search" placeholder="🔎 Search product, density, thickness...">
+<div class="wrap"><table><thead><tr><th>Product</th><th>Density</th><th>Thickness</th><th>Unit</th><th>Stock</th><th>Rate</th><th>Action</th></tr></thead><tbody id="body"></tbody></table></div></section>
 </div>
-
-<div class="status" id="status">Ready.</div>
-</div>
-</section>
-
-<section class="card">
-<h2>📊 Overview</h2>
-<div class="stats">
-<div class="stat">
-Total Stock Units
-<b id="total">0</b>
-</div>
-
-<div class="stat">
-Inventory Value
-<b id="value">₹0</b>
-</div>
-</div>
-</section>
-
-<section class="card">
-<h2>⚡ Quick Actions</h2>
-
-<div class="actions">
-<button class="action" id="stockInBtn">
-➕ Stock In
-<small>Add stock</small>
-</button>
-
-<button class="action" id="stockOutBtn">
-➖ Stock Out
-<small>Sell / remove</small>
-</button>
-
-<button class="action" id="inventoryBtn">
-📦 Inventory
-<small>Add product</small>
-</button>
-
-<button class="action" id="rateBtn">
-💰 Rate List
-<small>Search rates</small>
-</button>
-</div>
-</section>
-
-<section class="card hidden" id="form">
-<h2 id="formTitle">➕ Add Product</h2>
-
-<div class="formgrid">
-<input id="product" placeholder="Product (e.g. Gadda)">
-<input id="density" placeholder="Density (e.g. 40)">
-<input id="thickness" placeholder="Thickness (e.g. 4 inch)">
-<input id="unit" placeholder="Unit (e.g. pcs)" value="pcs">
-<input id="stock" type="number" min="0" placeholder="Stock">
-<input id="rate" type="number" min="0" placeholder="Rate">
-</div>
-
-<button class="add" id="saveProductBtn">💾 Save</button>
-<button class="cancel" id="cancelBtn">Cancel</button>
-</section>
-
-<section class="card">
-<h2>📦 Current Inventory</h2>
-
-<input
-class="search"
-id="search"
-placeholder="🔎 Search product, density, thickness..."
->
-
-<div class="wrap">
-<table>
-<thead>
-<tr>
-<th>Product</th>
-<th>Density</th>
-<th>Thickness</th>
-<th>Unit</th>
-<th>Stock</th>
-<th>Rate</th>
-<th>Action</th>
-</tr>
-</thead>
-
-<tbody id="body"></tbody>
-</table>
-</div>
-</section>
-
-</div>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script>
 
-const SUPABASE_URL="https://azxopdaznggskxibhyef.supabase.co";
 
-const SUPABASE_PUBLISHABLE_KEY="sb_publishable_kGXh6KpVRsqfbpMtausmSQ_KC7712h8";
+const SUPABASE_URL = "https://azxopdaznggskxibhyef.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_kGXh6KpVRsqfbpMtausmSQ_KC7712h8";
 
-const sb=window.supabase.createClient(
-SUPABASE_URL,
-SUPABASE_PUBLISHABLE_KEY
-);
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
 const KEY="city_group_inventory_v1";
 const FALLBACK_KEY="city_group_stock_manager_v1";
-
 let data=loadLocalData();
 let syncing=true;
 let consumedCommand="";
 
-function $(id){
-return document.getElementById(id);
-}
-
 function validInventory(v){
-return Array.isArray(v)&&v.some(
-x=>x&&typeof x==="object"&&
-("density" in x)&&
-("thickness" in x)&&
-("stock" in x)
-);
+  return Array.isArray(v) && v.some(x=>x && typeof x==="object" &&
+    ("density" in x) && ("thickness" in x) && ("stock" in x));
 }
 
 function loadLocalData(){
-
-const keys=[KEY,FALLBACK_KEY];
-
-try{
-
-for(let i=0;i<localStorage.length;i++){
-
-const k=localStorage.key(i);
-
-if(
-k&&
-/^city_group/i.test(k)&&
-!keys.includes(k)
-){
-keys.push(k);
-}
-
-}
-
-}catch(e){}
-
-for(const k of keys){
-
-try{
-
-const raw=localStorage.getItem(k);
-
-if(!raw)continue;
-
-const parsed=JSON.parse(raw);
-
-if(validInventory(parsed)){
-return parsed;
-}
-
-}catch(e){}
-
-}
-
-return [];
+  const keys=[KEY,FALLBACK_KEY];
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k && /^city_group/i.test(k) && !keys.includes(k)) keys.push(k);
+    }
+  }catch(e){}
+  for(const k of keys){
+    try{
+      const raw=localStorage.getItem(k);
+      if(!raw) continue;
+      const parsed=JSON.parse(raw);
+      if(validInventory(parsed)) return parsed;
+    }catch(e){}
+  }
+  return [];
 }
 
 function cacheLocal(){
-
-try{
-localStorage.setItem(
-KEY,
-JSON.stringify(data)
-);
-}catch(e){}
-
+  try{ localStorage.setItem(KEY,JSON.stringify(data)); }catch(e){}
 }
 
 function money(n){
-
-return "₹"+
-Number(n||0).toLocaleString(
-"en-IN",
-{maximumFractionDigits:2}
-);
-
+  return "₹"+Number(n||0).toLocaleString("en-IN",{maximumFractionDigits:2});
 }
 
 function esc(s){
-
-return String(s??"").replace(
-/[&<>"']/g,
-c=>({
-"&":"&amp;",
-"<":"&lt;",
-">":"&gt;",
-'"':"&quot;",
-"'":"&#039;"
-}[c])
-);
-
+  return String(s??"").replace(/[&<>"']/g,c=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[c]));
 }
 
 function norm(s){
-
-return String(s??"")
-.toLowerCase()
-
-.replace(/डेंसिटी/g," density ")
-.replace(/इंच/g," inch ")
-.replace(/गद्दों/g," gadde ")
-.replace(/गद्दे/g," gadde ")
-.replace(/गद्दा/g," gadda ")
-
-.replace(/आधा|आधे/g," 0.5 ")
-
-.replace(/एक/g," 1 ")
-.replace(/दो/g," 2 ")
-.replace(/तीन/g," 3 ")
-.replace(/चार/g," 4 ")
-.replace(/पाँच|पांच/g," 5 ")
-.replace(/छह|छः/g," 6 ")
-.replace(/सात/g," 7 ")
-.replace(/आठ/g," 8 ")
-.replace(/नौ/g," 9 ")
-.replace(/दस/g," 10 ")
-
-.replace(/चालीस/g," 40 ")
-.replace(/पचास/g," 50 ")
-.replace(/साठ/g," 60 ")
-.replace(/सत्तर/g," 70 ")
-.replace(/अस्सी/g," 80 ")
-.replace(/नब्बे/g," 90 ")
-
-.replace(/बिक\s*गए/g," bik gaye ")
-.replace(/बिक\s*गये/g," bik gaye ")
-
-.replace(/आ\s*गए/g," aa gaye ")
-.replace(/आ\s*गये/g," aa gaye ")
-.replace(/आ\s*गया/g," aa gaya ")
-.replace(/आ\s*गयी/g," aa gayi ")
-
-.replace(/[^\p{L}\p{N}.\s-]/gu," ")
-.replace(/\s+/g," ")
-.trim();
-
+  return String(s??"").toLowerCase()
+    .replace(/डेंसिटी/g," density ")
+    .replace(/इंच/g," inch ")
+    .replace(/गद्दों/g," gadde ")
+    .replace(/गद्दे/g," gadde ")
+    .replace(/गद्दा/g," gadda ")
+    .replace(/आधा|आधे/g," 0.5 ")
+    .replace(/एक/g," 1 ")
+    .replace(/दो/g," 2 ")
+    .replace(/तीन/g," 3 ")
+    .replace(/चार/g," 4 ")
+    .replace(/पाँच|पांच/g," 5 ")
+    .replace(/छह|छः/g," 6 ")
+    .replace(/सात/g," 7 ")
+    .replace(/आठ/g," 8 ")
+    .replace(/नौ/g," 9 ")
+    .replace(/दस/g," 10 ")
+    .replace(/चालीस/g," 40 ")
+    .replace(/पचास/g," 50 ")
+    .replace(/साठ/g," 60 ")
+    .replace(/सत्तर/g," 70 ")
+    .replace(/अस्सी/g," 80 ")
+    .replace(/नब्बे/g," 90 ")
+    .replace(/बिक\s*गए/g," bik gaye ")
+    .replace(/बिक\s*गये/g," bik gaye ")
+    .replace(/आ\s*गए/g," aa gaye ")
+    .replace(/आ\s*गये/g," aa gaye ")
+    .replace(/आ\s*गया/g," aa gaya ")
+    .replace(/आ\s*गयी/g," aa gayi ")
+    .replace(/[^\p{L}\p{N}.\s-]/gu," ")
+    .replace(/\s+/g," ").trim();
 }
 
 function render(){
+  const q=norm($("search").value);
+  const list=data.filter(p=>!q||[
+    p.product,p.density,p.thickness,p.unit,p.stock,p.rate
+  ].some(x=>norm(x).includes(q)));
 
-const q=norm($("search").value);
+  $("body").innerHTML=list.length
+    ? list.map(p=>`<tr>
+        <td>${esc(p.product)}</td>
+        <td>${esc(p.density)}</td>
+        <td>${esc(p.thickness)}</td>
+        <td>${esc(p.unit||"pcs")}</td>
+        <td><b>${Number(p.stock||0)}</b></td>
+        <td>${money(p.rate)}</td>
+        <td><button type="button" class="row edit-btn" data-edit-id="${esc(p.id)}">✏️ Edit</button></td>
+      </tr>`).join("")
+    : `<tr><td colspan="7" class="empty">No products added.</td></tr>`;
 
-const list=data.filter(
-p=>!q||[
-p.product,
-p.density,
-p.thickness,
-p.unit,
-p.stock,
-p.rate
-].some(
-x=>norm(x).includes(q)
-)
-);
-
-$("body").innerHTML=list.length
-
-?list.map(p=>`<tr>
-
-<td>${esc(p.product)}</td>
-<td>${esc(p.density)}</td>
-<td>${esc(p.thickness)}</td>
-<td>${esc(p.unit||"pcs")}</td>
-
-<td>
-<b>${Number(p.stock||0)}</b>
-</td>
-
-<td>${money(p.rate)}</td>
-
-<td>
-<button
-type="button"
-class="row edit-btn"
-data-edit-id="${esc(p.id)}"
->
-✏️ Edit
-</button>
-</td>
-
-</tr>`).join("")
-
-:`<tr>
-<td colspan="7" class="empty">
-No products added.
-</td>
-</tr>`;
-
-$("total").textContent=
-data.reduce(
-(a,p)=>a+Number(p.stock||0),
-0
-).toLocaleString("en-IN");
-
-$("value").textContent=
-money(
-data.reduce(
-(a,p)=>
-a+
-Number(p.stock||0)*
-Number(p.rate||0),
-0
-)
-);
-
+  $("total").textContent=data.reduce((a,p)=>a+Number(p.stock||0),0).toLocaleString("en-IN");
+  $("value").textContent=money(data.reduce((a,p)=>a+Number(p.stock||0)*Number(p.rate||0),0));
 }
 
 function rowToLocal(r){
-
-return {
-id:String(r.id),
-created_at:r.created_at,
-product:r.product||"",
-density:r.density||"",
-thickness:r.thickness||"",
-unit:r.unit||"pcs",
-stock:Number(r.stock||0),
-rate:Number(r.rate||0)
-};
-
+  return {
+    id:String(r.id),
+    created_at:r.created_at,
+    product:r.Product||"",
+    density:r.Density||"",
+    thickness:r.Thickness||"",
+    unit:r.Unit||"pcs",
+    stock:Number(r.Stock||0),
+    rate:Number(r.Rate||0)
+  };
 }
 
 async function syncFromSupabase(){
+  syncing=true;
+  $("status").textContent="☁️ Syncing shared inventory…";
+  try{
+    const {data:rows,error}=await sb.from('Inventory').select("*").order("id",{ascending:true});
+    if(error) throw error;
 
-syncing=true;
+    // First-time migration: if the cloud table is empty but this phone has
+    // existing local inventory, upload that inventory once.
+    if((rows||[]).length===0 && data.length>0){
+      const payload=data.map(p=>({
+        Product:String(p.product||""),
+        Density:String(p.density||""),
+        Thickness:String(p.thickness||""),
+        Unit:String(p.unit||"pcs"),
+        Stock:Number(p.stock||0),
+        Rate:Number(p.rate||0)
+      }));
 
-$("status").textContent=
-"☁️ Syncing shared inventory…";
+      const {data:inserted,error:insertError}=await sb.from('Inventory')
+        .insert(payload).select("*");
+      if(insertError) throw insertError;
 
-try{
-
-const {
-data:rows,
-error
-}=await sb
-.from("inventory")
-.select("*")
-.order("id",{ascending:true});
-
-if(error)throw error;
-
-if(
-(rows||[]).length===0&&
-data.length>0
-){
-
-const payload=data.map(p=>({
-
-product:String(p.product||""),
-density:String(p.density||""),
-thickness:String(p.thickness||""),
-unit:String(p.unit||"pcs"),
-stock:Number(p.stock||0),
-rate:Number(p.rate||0)
-
-}));
-
-const {
-data:inserted,
-error:insertError
-}=await sb
-.from("inventory")
-.insert(payload)
-.select("*");
-
-if(insertError)throw insertError;
-
-data=(inserted||[]).map(rowToLocal);
-
-cacheLocal();
-render();
-
-$("status").textContent=
-"☁️ Local inventory uploaded to shared database.";
-
-}else{
-
-data=(rows||[]).map(rowToLocal);
-
-cacheLocal();
-render();
-
-$("status").textContent=
-"☁️ Shared inventory synced.";
-
+      data=(inserted||[]).map(rowToLocal);
+      cacheLocal();
+      render();
+      $("status").textContent="☁️ Local inventory uploaded to shared database.";
+    }else{
+      data=(rows||[]).map(rowToLocal);
+      cacheLocal();
+      render();
+      $("status").textContent="☁️ Shared inventory synced.";
+    }
+  }catch(e){
+    console.error(e);
+    render();
+    $("status").textContent="⚠️ Supabase sync failed: "+(e?.message||"Unknown error");
+  }finally{
+    syncing=false;
+  }
 }
 
-}catch(e){
-
-console.error(e);
-
-render();
-
-$("status").textContent=
-"⚠️ Supabase sync failed. Check internet/API/RLS.";
-
-}finally{
-
-syncing=false;
-
-}
-
-}
-
-async function addRemote(
-product,
-density,
-thickness,
-unit,
-stock,
-rate
-){
-
-const {
-data:rows,
-error
-}=await sb
-.from("inventory")
-.insert([
-{
-product,
-density,
-thickness,
-unit,
-stock,
-rate
-}
-])
-.select("*")
-.single();
-
-if(error)throw error;
-
-return rowToLocal(rows);
-
+async function addRemote(product,density,thickness,unit,stock,rate){
+  const {data:rows,error}=await sb.from('Inventory')
+    .insert([{Product:product,Density:density,Thickness:thickness,Unit:unit,Stock:stock,Rate:rate}]).select("*").single();
+  if(error) throw error;
+  return rowToLocal(rows);
 }
 
 async function updateRemote(id,changes){
-
-const {
-data:rows,
-error
-}=await sb
-.from("inventory")
-.update(changes)
-.eq("id",id)
-.select("*")
-.single();
-
-if(error)throw error;
-
-return rowToLocal(rows);
-
+  const {data:rows,error}=await sb.from('Inventory')
+    .update(changes).eq("id",id).select("*").single();
+  if(error) throw error;
+  return rowToLocal(rows);
 }
 
 function editProduct(id){
-
-const p=data.find(
-x=>String(x.id)===String(id)
-);
-
-if(!p){
-
-$("status").textContent=
-"⚠️ Product नहीं मिला — कोई बदलाव नहीं किया गया।";
-
-return;
-}
-
-$("form").classList.remove("hidden");
-
-$("formTitle").textContent=
-"✏️ Edit Product";
-
-$("form").dataset.mode="edit";
-
-$("form").dataset.editId=
-String(p.id);
-
-$("product").value=p.product||"";
-$("density").value=p.density||"";
-$("thickness").value=p.thickness||"";
-$("unit").value=p.unit||"pcs";
-$("stock").value=Number(p.stock||0);
-$("rate").value=Number(p.rate||0);
-
+  const p=data.find(x=>String(x.id)===String(id));
+  if(!p){
+    $("status").textContent="⚠️ Product नहीं मिला — कोई बदलाव नहीं किया गया।";
+    return;
+  }
+  $("form").classList.remove("hidden");
+  $("formTitle").textContent="✏️ Edit Product";
+  $("form").dataset.mode="edit";
+  $("form").dataset.editId=String(p.id);
+  $("product").value=p.product||"";
+  $("density").value=p.density||"";
+  $("thickness").value=p.thickness||"";
+  $("unit").value=p.unit||"pcs";
+  $("stock").value=Number(p.stock||0);
+  $("rate").value=Number(p.rate||0);
 }
 
 function openForm(mode){
-
-$("form").classList.remove("hidden");
-
-$("formTitle").textContent=
-mode==="in"
-?"➕ Stock In"
-:
-mode==="out"
-?"➖ Stock Out"
-:
-"➕ Add Product";
-
-$("form").dataset.mode=mode;
-$("form").dataset.editId="";
-
-[
-"product",
-"density",
-"thickness",
-"stock",
-"rate"
-].forEach(
-x=>$(x).value=""
-);
-
-$("unit").value="pcs";
-
+  $("form").classList.remove("hidden");
+  $("formTitle").textContent=mode==="in"?"➕ Stock In":mode==="out"?"➖ Stock Out":"➕ Add Product";
+  $("form").dataset.mode=mode;
+  $("form").dataset.editId="";
+  ["product","density","thickness","stock","rate"].forEach(x=>$(x).value="");
+  $("unit").value="pcs";
 }
 
-function closeForm(){
-
-$("form").classList.add("hidden");
-
-}
+function closeForm(){$("form").classList.add("hidden");}
 
 async function saveProduct(){
+  if(syncing){
+    alert("Please wait for inventory sync to finish.");
+    return;
+  }
 
-if(syncing){
+  const product=$("product").value.trim();
+  const density=$("density").value.trim();
+  const thickness=$("thickness").value.trim();
+  const unit=$("unit").value.trim()||"pcs";
+  const stock=Number($("stock").value||0);
+  const rate=Number($("rate").value||0);
+  const mode=$("form").dataset.mode||"add";
 
-alert(
-"Please wait for inventory sync to finish."
-);
+  if(!product||!density||!thickness||stock<0||rate<0){
+    alert("Please fill all product fields correctly.");
+    return;
+  }
 
-return;
+  $("status").textContent="☁️ Saving to shared database…";
+
+  try{
+    if(mode==="in"||mode==="out"){
+      const p=data.find(x=>norm(x.density)===norm(density)&&norm(x.thickness)===norm(thickness));
+      if(!p){alert("Product not found. Add it first.");$("status").textContent="Product not found.";return;}
+      if(mode==="out"&&stock>Number(p.stock||0)){
+        alert("Stock Out cannot exceed current stock.");$("status").textContent="Stock unchanged.";return;
+      }
+      const newStock=mode==="in"
+        ? Number(p.stock||0)+stock
+        : Number(p.stock||0)-stock;
+      const updated=await updateRemote(p.id,{Stock:newStock});
+      data=data.map(x=>String(x.id)===String(p.id)?updated:x);
+    }else if(mode==="edit"){
+      const id=$("form").dataset.editId;
+      const p=data.find(x=>String(x.id)===String(id));
+      if(!p){alert("Product not found.");return;}
+      const updated=await updateRemote(id,{product,density,thickness,unit,stock,rate});
+      data=data.map(x=>String(x.id)===String(id)?updated:x);
+    }else{
+      const newProduct=await addRemote(product,density,thickness,unit,stock,rate);
+      data.push(newProduct);
+    }
+
+    cacheLocal();
+    render();
+    closeForm();
+    $("status").textContent="✅ Saved to shared inventory.";
+  }catch(e){
+    console.error(e);
+    $("status").textContent="❌ Save failed. Stock was not changed locally.";
+    alert("Supabase save failed. Please check internet connection and API/RLS settings.");
+  }
 }
 
-const product=$("product").value.trim();
-const density=$("density").value.trim();
-const thickness=$("thickness").value.trim();
-const unit=$("unit").value.trim()||"pcs";
-
-const stock=Number(
-$("stock").value||0
-);
-
-const rate=Number(
-$("rate").value||0
-);
-
-const mode=
-$("form").dataset.mode||"add";
-
-if(
-!product||
-!density||
-!thickness||
-stock<0||
-rate<0
-){
-
-alert(
-"Please fill all product fields correctly."
-);
-
-return;
-}
-
-$("status").textContent=
-"☁️ Saving to shared database…";
-
-try{
-
-if(mode==="in"||mode==="out"){
-
-const p=data.find(
-x=>
-norm(x.density)===norm(density)&&
-norm(x.thickness)===norm(thickness)
-);
-
-if(!p){
-
-alert(
-"Product not found. Add it first."
-);
-
-$("status").textContent=
-"Product not found.";
-
-return;
-}
-
-if(
-mode==="out"&&
-stock>Number(p.stock||0)
-){
-
-alert(
-"Stock Out cannot exceed current stock."
-);
-
-$("status").textContent=
-"Stock unchanged.";
-
-return;
-}
-
-const newStock=
-mode==="in"
-?
-Number(p.stock||0)+stock
-:
-Number(p.stock||0)-stock;
-
-const updated=
-await updateRemote(
-p.id,
-{stock:newStock}
-);
-
-data=data.map(
-x=>
-String(x.id)===String(p.id)
-?updated
-:x
-);
-
-}else if(mode==="edit"){
-
-const id=
-$("form").dataset.editId;
-
-const p=data.find(
-x=>String(x.id)===String(id)
-);
-
-if(!p){
-
-alert("Product not found.");
-
-return;
-}
-
-const updated=
-await updateRemote(
-id,
-{
-product,
-density,
-thickness,
-unit,
-stock,
-rate
-}
-);
-
-data=data.map(
-x=>
-String(x.id)===String(id)
-?updated
-:x
-);
-
-}else{
-
-const newProduct=
-await addRemote(
-product,
-density,
-thickness,
-unit,
-stock,
-rate
-);
-
-data.push(newProduct);
-
-}
-
-cacheLocal();
-render();
-closeForm();
-
-$("status").textContent=
-"✅ Saved to shared inventory.";
-
-}catch(e){
-
-console.error(e);
-
-$("status").textContent=
-"❌ Save failed. Stock was not changed locally.";
-
-alert(
-"Supabase save failed. Please check internet connection and API/RLS settings."
-);
-
-}
-
-}
-
-$("inventoryBtn").onclick=
-()=>openForm("add");
-
-$("stockInBtn").onclick=
-()=>openForm("in");
-
-$("stockOutBtn").onclick=
-()=>openForm("out");
-
-$("rateBtn").onclick=
-()=>$("search").focus();
-
-$("saveProductBtn").onclick=
-saveProduct;
-
-$("cancelBtn").onclick=
-closeForm;
-
-$("search").oninput=
-render;
-
-$("body").addEventListener(
-"click",
-e=>{
-
-const b=
-e.target.closest("[data-edit-id]");
-
-if(b){
-editProduct(b.dataset.editId);
-}
-
-}
-);
+$("inventoryBtn").onclick=()=>openForm("add");
+$("stockInBtn").onclick=()=>openForm("in");
+$("stockOutBtn").onclick=()=>openForm("out");
+$("rateBtn").onclick=()=>$("search").focus();
+$("saveProductBtn").onclick=saveProduct;
+$("cancelBtn").onclick=closeForm;
+$("search").oninput=render;
+$("body").addEventListener("click",e=>{
+  const b=e.target.closest("[data-edit-id]");
+  if(b) editProduct(b.dataset.editId);
+});
 
 const words={
-
-ek:1,
-do:2,
-teen:3,
-char:4,
-chaar:4,
-paanch:5,
-panch:5,
-chhe:6,
-che:6,
-saat:7,
-aath:8,
-nau:9,
-das:10,
-
-one:1,
-two:2,
-three:3,
-four:4,
-five:5,
-six:6,
-seven:7,
-eight:8,
-nine:9,
-ten:10,
-
-"एक":1,
-"दो":2,
-"तीन":3,
-"चार":4,
-"पाँच":5,
-"पांच":5,
-"छह":6,
-"छः":6,
-"सात":7,
-"आठ":8,
-"नौ":9,
-"दस":10
-
+  ek:1,do:2,teen:3,char:4,chaar:4,paanch:5,panch:5,chhe:6,che:6,saat:7,aath:8,nau:9,das:10,
+  one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,
+  "एक":1,"दो":2,"तीन":3,"चार":4,"पाँच":5,"पांच":5,"छह":6,"छः":6,"सात":7,"आठ":8,"नौ":9,"दस":10
 };
 
 function explicitQty(text){
-
-const raw=String(text||"");
-const n=norm(raw);
-
-let m=raw.match(
-/(?:^|\s)(एक|दो|तीन|चार|पाँच|पांच|छह|छः|सात|आठ|नौ|दस)\s*(?:गद्दे|गद्दों|गद्दा|पीस|नग)(?=\s|$)/
-);
-
-if(m)return words[m[1]];
-
-m=n.match(
-/\b(ek|do|teen|char|chaar|paanch|panch|chhe|che|saat|aath|nau|das|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:gadde|gadda|pcs|pieces|piece|units?)\b/i
-);
-
-if(m)return words[m[1].toLowerCase()];
-
-m=n.match(
-/\b(\d+(?:\.\d+)?)\s*(?:gadde|gadda|pcs|pieces|piece|units?|नग|पीस)\b/i
-);
-
-if(m)return Number(m[1]);
-
-const d=Number(
-(n.match(
-/(\d+(?:\.\d+)?)\s*density/i
-)||[])[1]
-);
-
-const t=Number(
-(n.match(
-/(\d+(?:\.\d+)?)\s*inch/i
-)||[])[1]
-);
-
-const nums=[
-...n.matchAll(
-/\b\d+(?:\.\d+)?\b/g
-)
-].map(
-x=>Number(x[0])
-);
-
-const rem=
-nums.filter(
-x=>x!==d&&x!==t
-);
-
-if(rem.length){
-return rem[rem.length-1];
+  const raw=String(text||"");
+  const n=norm(raw);
+  let m=raw.match(/(?:^|\s)(एक|दो|तीन|चार|पाँच|पांच|छह|छः|सात|आठ|नौ|दस)\s*(?:गद्दे|गद्दों|गद्दा|पीस|नग)(?=\s|$)/);
+  if(m)return words[m[1]];
+  m=n.match(/\b(ek|do|teen|char|chaar|paanch|panch|chhe|che|saat|aath|nau|das|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:gadde|gadda|pcs|pieces|piece|units?)\b/i);
+  if(m)return words[m[1].toLowerCase()];
+  m=n.match(/\b(\d+(?:\.\d+)?)\s*(?:gadde|gadda|pcs|pieces|piece|units?|नग|पीस)\b/i);
+  if(m)return Number(m[1]);
+  const d=Number((n.match(/(\d+(?:\.\d+)?)\s*density/i)||[])[1]);
+  const t=Number((n.match(/(\d+(?:\.\d+)?)\s*inch/i)||[])[1]);
+  const nums=[...n.matchAll(/\b\d+(?:\.\d+)?\b/g)].map(x=>Number(x[0]));
+  const rem=nums.filter(x=>x!==d&&x!==t);
+  if(rem.length)return rem[rem.length-1];
+  return null;
 }
 
-return null;
-
-}
-
-function hasExactPhrase(text,phrase){
-
-const hay=
-norm(text)
-.split(/\s+/)
-.filter(Boolean);
-
-const needle=
-norm(phrase)
-.split(/\s+/)
-.filter(Boolean);
-
-if(!hay.length||!needle.length){
-return false;
-}
-
-for(
-let i=0;
-i<=hay.length-needle.length;
-i++
-){
-
-let ok=true;
-
-for(
-let j=0;
-j<needle.length;
-j++
-){
-
-if(
-hay[i+j]!==needle[j]
-){
-
-ok=false;
-break;
-
-}
-
-}
-
-if(ok)return true;
-
-}
-
-return false;
-
+function hasExactPhrase(text, phrase){
+  const hay=norm(text).split(/\s+/).filter(Boolean);
+  const needle=norm(phrase).split(/\s+/).filter(Boolean);
+  if(!hay.length || !needle.length)return false;
+  for(let i=0;i<=hay.length-needle.length;i++){
+    let ok=true;
+    for(let j=0;j<needle.length;j++){
+      if(hay[i+j]!==needle[j]){ok=false;break;}
+    }
+    if(ok)return true;
+  }
+  return false;
 }
 
 function parseRequestedSpec(text){
-
-const n=norm(text);
-
-const densityMatch=
-n.match(
-/(?:^|\s)(\d+(?:\.\d+)?)\s*density(?=\s|$)/i
-);
-
-const thicknessMatch=
-n.match(
-/(?:^|\s)(\d+(?:\.\d+)?)\s*inch(?=\s|$)/i
-);
-
-return {
-
-hasSpec:
-/\bdensity\b|\binch\b/i.test(n),
-
-density:
-densityMatch
-?densityMatch[1]
-:null,
-
-thickness:
-thicknessMatch
-?thicknessMatch[1]
-:null
-
-};
-
+  const n=norm(text);
+  const densityMatch=n.match(/(?:^|\s)(\d+(?:\.\d+)?)\s*density(?=\s|$)/i);
+  const thicknessMatch=n.match(/(?:^|\s)(\d+(?:\.\d+)?)\s*inch(?=\s|$)/i);
+  return {
+    hasSpec:/\bdensity\b|\binch\b/i.test(n),
+    density:densityMatch?densityMatch[1]:null,
+    thickness:thicknessMatch?thicknessMatch[1]:null
+  };
 }
 
 function specError(spec){
-
-if(
-spec.thickness&&
-!spec.density
-){
-
-return `⚠️ ${spec.thickness} inch की category inventory में मौजूद नहीं है। Stock में कोई बदलाव नहीं किया गया।`;
-
-}
-
-if(
-spec.density&&
-!spec.thickness
-){
-
-return `⚠️ ${spec.density} density की पूरी specification नहीं मिली। Stock में कोई बदलाव नहीं किया गया।`;
-
-}
-
-if(spec.thickness){
-
-return `⚠️ ${spec.thickness} inch की category inventory में मौजूद नहीं है। Stock में कोई बदलाव नहीं किया गया।`;
-
-}
-
-return "⚠️ यह specification inventory में मौजूद नहीं है। Stock में कोई बदलाव नहीं किया गया।";
-
+  if(spec.thickness && !spec.density)
+    return `⚠️ ${spec.thickness} inch की category inventory में मौजूद नहीं है। Stock में कोई बदलाव नहीं किया गया।`;
+  if(spec.density && !spec.thickness)
+    return `⚠️ ${spec.density} density की पूरी specification नहीं मिली। Stock में कोई बदलाव नहीं किया गया।`;
+  if(spec.thickness)
+    return `⚠️ ${spec.thickness} inch की category inventory में मौजूद नहीं है। Stock में कोई बदलाव नहीं किया गया।`;
+  return "⚠️ यह specification inventory में मौजूद नहीं है। Stock में कोई बदलाव नहीं किया गया।";
 }
 
 function findProduct(text){
+  const spec=parseRequestedSpec(text);
+  const n=norm(text);
 
-const spec=
-parseRequestedSpec(text);
+  if(spec.hasSpec){
+    if(!spec.density || !spec.thickness)return null;
+    return data.find(p=>{
+      const pd=norm(p.density).match(/(\d+(?:\.\d+)?)/);
+      const pt=norm(p.thickness).match(/(\d+(?:\.\d+)?)/);
+      return pd && pt && pd[1]===spec.density && pt[1]===spec.thickness;
+    }) || null;
+  }
 
-const n=norm(text);
-
-if(spec.hasSpec){
-
-if(
-!spec.density||
-!spec.thickness
-){
-
-return null;
-
-}
-
-return data.find(p=>{
-
-const pd=
-norm(p.density).match(
-/(\d+(?:\.\d+)?)/
-);
-
-const pt=
-norm(p.thickness).match(
-/(\d+(?:\.\d+)?)/
-);
-
-return(
-pd&&
-pt&&
-pd[1]===spec.density&&
-pt[1]===spec.thickness
-);
-
-})||null;
-
-}
-
-const matches=
-data.filter(p=>{
-
-const name=
-norm(p.product);
-
-return(
-name&&
-hasExactPhrase(n,name)
-);
-
-});
-
-return matches.length===1
-?matches[0]
-:null;
-
+  const matches=data.filter(p=>{
+    const name=norm(p.product);
+    return name&&hasExactPhrase(n,name);
+  });
+  return matches.length===1?matches[0]:null;
 }
 
 function detectIntent(text){
+  const raw=String(text||"");
+  const n=norm(raw);
 
-const raw=String(text||"");
-const n=norm(raw);
+  if(
+    /(?:क्या|कितना|कितने|कितनी|बताओ|बता|रेट|भाव|दाम|कीमत|मूल्य|price|rate|cost|how much|what is|show|दिखाओ|list)/i.test(raw) ||
+    /\b(rate|price|cost|how much|what is|show|list)\b/i.test(n)
+  ) return "query";
 
-if(
+  if(
+    /(?:बिक|बेच|बिका|बिके|बेचा|चले\s*गए|चले\s*गये|चला\s*गया|निकाल|हटा|sold|sell|sale|remove)/i.test(raw) ||
+    /\b(bik|bike|bika|bicke|bech|becha|chale\s*(?:gaye|gye)|chala\s*gaya|sold|sell|sale|out|remove|nikal)\b/i.test(n)
+  ) return "out";
 
-/(?:क्या|कितना|कितने|कितनी|बताओ|बता|रेट|भाव|दाम|कीमत|मूल्य|price|rate|cost|how much|what is|show|दिखाओ|list)/i.test(raw)
+  if(
+    /(?:आ\s*गए|आ\s*गये|आ\s*गया|आ\s*गई|आया|आए|आई|माल\s*आ|स्टॉक\s*आ|मिला|मिले|जमा|खरीदा|खरीदे|प्राप्त)/i.test(raw) ||
+    /\b(aa\s*(?:gaye|gye|gaya|gya|gayi|gai)|aagaye|aagye|aaya|aaye|aayi|mila|mile|jama|kharida|kharide|received|receive|purchase|purchased)\b/i.test(n)
+  ) return "in";
 
-||
-
-/\b(rate|price|cost|how much|what is|show|list)\b/i.test(n)
-
-){
-
-return "query";
-
-}
-
-if(
-
-/(?:बिक|बेच|बिका|बिके|बेचा|चले\s*गए|चले\s*गये|चला\s*गया|निकाल|हटा|sold|sell|sale|remove)/i.test(raw)
-
-||
-
-/\b(bik|bike|bika|bicke|bech|becha|chale\s*(?:gaye|gye)|chala\s*gaya|sold|sell|sale|out|remove|nikal)\b/i.test(n)
-
-){
-
-return "out";
-
-}
-
-if(
-
-/(?:आ\s*गए|आ\s*गये|आ\s*गया|आ\s*गई|आया|आए|आई|माल\s*आ|स्टॉक\s*आ|मिला|मिले|जमा|खरीदा|खरीदे|प्राप्त)/i.test(raw)
-
-||
-
-/\b(aa\s*(?:gaye|gye|gaya|gya|gayi|gai)|aagaye|aagye|aaya|aaye|aayi|mila|mile|jama|kharida|kharide|received|receive|purchase|purchased)\b/i.test(n)
-
-){
-
-return "in";
-
-}
-
-return "unknown";
-
+  return "unknown";
 }
 
 function processCommand(){
+  const raw=$("cmd").value.trim();
 
-const raw=
-$("cmd").value.trim();
+  if(syncing){
+    $("status").textContent="⚠️ पहले shared inventory sync होने दें।";
+    return;
+  }
 
-if(syncing){
+  if(consumedCommand && raw === consumedCommand){
+    $("status").textContent="⚠️ यह command पहले ही process हो चुकी है। नई command लिखें।";
+    return;
+  }
 
-$("status").textContent=
-"⚠️ पहले shared inventory sync होने दें।";
+  if(!raw){
+    $("status").textContent="⚠️ Command खाली है — stock में कोई बदलाव नहीं किया गया।";
+    return;
+  }
 
-return;
+  const type=detectIntent(raw);
 
+  if(type==="query"){
+    const p=findProduct(raw);
+    if(!p){
+      $("status").textContent="Product not found. Density + thickness mention kijiye.";
+      return;
+    }
+    $("status").textContent=`💰 Rate: ${money(p.rate)} per ${p.unit||"pcs"} | Current stock: ${Number(p.stock||0)}`;
+    return;
+  }
+
+  if(type==="unknown"){
+    $("status").textContent="⚠️ Action clear नहीं है — 'aa gaye' या 'bik gaye' बोलिए। Stock unchanged.";
+    return;
+  }
+
+  const q=explicitQty(raw);
+  if(q===null||!Number.isFinite(q)||q<=0){
+    $("status").textContent="⚠️ Quantity साफ़ लिखें — stock में कोई बदलाव नहीं किया गया।";
+    return;
+  }
+
+  const spec=parseRequestedSpec(raw);
+  const p=findProduct(raw);
+  if(!p){
+    $("status").textContent=spec.hasSpec
+      ? specError(spec)
+      : "⚠️ Product not found — stock unchanged.";
+    return;
+  }
+
+  if(spec.hasSpec){
+    const pd=norm(p.density).match(/(\d+(?:\.\d+)?)/);
+    const pt=norm(p.thickness).match(/(\d+(?:\.\d+)?)/);
+    if(!pd || !pt || pd[1]!==spec.density || pt[1]!==spec.thickness){
+      $("status").textContent=specError(spec);
+      return;
+    }
+  }
+
+  const cur=Number(p.stock||0);
+  const newStock=type==="out"?cur-q:cur+q;
+
+  if(type==="out" && cur<q){
+    $("status").textContent=`Not enough stock. Available: ${cur} ${p.unit||"pcs"}`;
+    return;
+  }
+
+  $("status").textContent="☁️ Updating shared stock…";
+
+  updateRemote(p.id,{Stock:newStock}).then(updated=>{
+    data=data.map(x=>String(x.id)===String(p.id)?updated:x);
+    cacheLocal();
+    render();
+
+    if(type==="out"){
+      $("status").textContent=`✅ Stock Out: ${q} ${p.unit||"pcs"}. New stock: ${updated.stock}`;
+    }else{
+      $("status").textContent=`✅ Stock In: ${q} ${p.unit||"pcs"}. New stock: ${updated.stock}`;
+    }
+
+    consumedCommand=raw;
+    $("cmd").value="";
+  }).catch(e=>{
+    console.error(e);
+    $("status").textContent="❌ Shared stock update failed. Stock unchanged.";
+  });
 }
 
-if(
-consumedCommand&&
-raw===consumedCommand
-){
-
-$("status").textContent=
-"⚠️ यह command पहले ही process हो चुकी है। नई command लिखें।";
-
-return;
-
-}
-
-if(!raw){
-
-$("status").textContent=
-"⚠️ Command खाली है — stock में कोई बदलाव नहीं किया गया।";
-
-return;
-
-}
-
-const type=
-detectIntent(raw);
-
-if(type==="query"){
-
-const p=
-findProduct(raw);
-
-if(!p){
-
-$("status").textContent=
-"Product not found. Density + thickness mention kijiye.";
-
-return;
-
-}
-
-$("status").textContent=
-`💰 Rate: ${money(p.rate)} per ${p.unit||"pcs"} | Current stock: ${Number(p.stock||0)}`;
-
-return;
-
-}
-
-if(type==="unknown"){
-
-$("status").textContent=
-"⚠️ Action clear नहीं है — 'aa gaye' या 'bik gaye' बोलिए। Stock unchanged.";
-
-return;
-
-}
-
-const q=
-explicitQty(raw);
-
-if(
-q===null||
-!Number.isFinite(q)||
-q<=0
-){
-
-$("status").textContent=
-"⚠️ Quantity साफ़ लिखें — stock में कोई बदलाव नहीं किया गया।";
-
-return;
-
-}
-
-const spec=
-parseRequestedSpec(raw);
-
-const p=
-findProduct(raw);
-
-if(!p){
-
-$("status").textContent=
-spec.hasSpec
-?specError(spec)
-:"⚠️ Product not found — stock unchanged.";
-
-return;
-
-}
-
-if(spec.hasSpec){
-
-const pd=
-norm(p.density).match(
-/(\d+(?:\.\d+)?)/
-);
-
-const pt=
-norm(p.thickness).match(
-/(\d+(?:\.\d+)?)/
-);
-
-if(
-!pd||
-!pt||
-pd[1]!==spec.density||
-pt[1]!==spec.thickness
-){
-
-$("status").textContent=
-specError(spec);
-
-return;
-
-}
-
-}
-
-const cur=
-Number(p.stock||0);
-
-const newStock=
-type==="out"
-?cur-q
-:cur+q;
-
-if(
-type==="out"&&
-cur<q
-){
-
-$("status").textContent=
-`Not enough stock. Available: ${cur} ${p.unit||"pcs"}`;
-
-return;
-
-}
-
-$("status").textContent=
-"☁️ Updating shared stock…";
-
-updateRemote(
-p.id,
-{stock:newStock}
-)
-
-.then(updated=>{
-
-data=data.map(
-x=>
-String(x.id)===String(p.id)
-?updated
-:x
-);
-
-cacheLocal();
-render();
-
-if(type==="out"){
-
-$("status").textContent=
-`✅ Stock Out: ${q} ${p.unit||"pcs"}. New stock: ${updated.stock}`;
-
-}else{
-
-$("status").textContent=
-`✅ Stock In: ${q} ${p.unit||"pcs"}. New stock: ${updated.stock}`;
-
-}
-
-consumedCommand=raw;
-$("cmd").value="";
-
-})
-
-.catch(e=>{
-
-console.error(e);
-
-$("status").textContent=
-"❌ Shared stock update failed. Stock unchanged.";
-
+$("cmd").addEventListener("input",()=>{
+  if($("cmd").value.trim() !== consumedCommand) consumedCommand="";
 });
-
-}
-
-$("cmd").addEventListener(
-"input",
-()=>{
-
-if(
-$("cmd").value.trim()!==consumedCommand
-){
-
-consumedCommand="";
-
-}
-
-}
-);
-
-$("process").onclick=
-processCommand;
+$("process").onclick=processCommand;
 
 $("speak").onclick=()=>{
-
-const SR=
-window.SpeechRecognition||
-window.webkitSpeechRecognition;
-
-if(!SR){
-
-$("status").textContent=
-"Voice recognition unavailable here. Type the command.";
-
-return;
-
-}
-
-try{
-
-const r=new SR();
-
-r.lang="hi-IN";
-r.interimResults=false;
-r.maxAlternatives=3;
-
-r.onstart=()=>{
-$("status").textContent=
-"🎙️ Listening… बोलिए।";
-};
-
-r.onresult=e=>{
-
-$("cmd").value=
-e.results?.[0]?.[0]?.transcript||"";
-
-$("status").textContent=
-"Voice captured. Tap Process.";
-
-};
-
-r.onerror=e=>{
-
-$("status").textContent=
-"Voice error: "+e.error;
-
-};
-
-r.start();
-
-}catch(e){
-
-$("status").textContent=
-"Voice could not start. Please allow microphone permission.";
-
-}
-
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){
+    $("status").textContent="Voice recognition unavailable here. Type the command.";
+    return;
+  }
+  try{
+    const r=new SR();
+    r.lang="hi-IN";
+    r.interimResults=false;
+    r.maxAlternatives=3;
+    r.onstart=()=>{$("status").textContent="🎙️ Listening… बोलिए।"};
+    r.onresult=e=>{
+      $("cmd").value=e.results?.[0]?.[0]?.transcript||"";
+      $("status").textContent="Voice captured. Tap Process.";
+    };
+    r.onerror=e=>$("status").textContent="Voice error: "+e.error;
+    r.start();
+  }catch(e){
+    $("status").textContent="Voice could not start. Please allow microphone permission.";
+  }
 };
 
 render();
 syncFromSupabase();
 
-</script>
-</body>
-</html>
+</script></body></html>
